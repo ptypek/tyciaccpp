@@ -11,7 +11,7 @@ using namespace std;
 
 void wczytajKarty(Karta tab[24]) {
 	cout << "Wczytuje karty";
-	string kolor[4] = { "kier", "karo", "pik", "trefl" }, figura[6] = { "9","10","J","Q","K","A" };
+	string kolor[4] = { "pik", "trefl", "karo", "kier" }, figura[6] = { "9","10","J","Q","K","A" };
 	int wart{};
 
 	//Dodanie do talii kart, wszystkie potrzebne do gry 24 karty (wszystkie 4 kolory + karty od 9 do Asa)
@@ -37,6 +37,7 @@ void przypiszObraz(Karta tab[24], sf::Texture* texture) {
 			tab[n].card.setTexture(*texture);
 			tab[n].card.setTextureRect(sf::IntRect(taliaSize.x * j, taliaSize.y * i, taliaSize.x, taliaSize.y));
 			tab[n].card.setPosition(sf::Vector2f(a + 20.0f, b));
+			tab[n].card.setOrigin(sf::Vector2f(tab[n].card.getGlobalBounds().width / 2, tab[n].card.getGlobalBounds().height / 2));
 			a += 50.0f;
 			n++;
 			if (n % 6 == 0) {
@@ -48,6 +49,7 @@ void przypiszObraz(Karta tab[24], sf::Texture* texture) {
 } 
 
 void przetasujKarty(Karta tab[24]) {
+	cout << "Tasuje ";
 	Karta tmp;
 	random_device device;
 	mt19937 generator(device());
@@ -71,7 +73,7 @@ void przetasujKarty(Karta tab[24]) {
 	}
 }
 
-void rozdanie(Karta gracz1[7], Karta gracz2[7], Karta gracz3[7], Karta talia[24], Karta musik[3]) {
+void rozdanie(Karta gracz1[8], Karta gracz2[8], Karta gracz3[8], Karta talia[24], Karta musik[3]) {
 	int licznik{}, iloscKartWRece{};
 	for (int i = 0; i < 21; i++) {									//Rozdanie 21 spoœród 24 kart, po 7 dla ka¿dego gracza, 3 pozosta³e (ostanie) karty id¹ na tzw. "musik"
 		if (i % 3 == 0) {

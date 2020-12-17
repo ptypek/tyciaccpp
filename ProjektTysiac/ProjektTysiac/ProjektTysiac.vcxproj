@@ -84,14 +84,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="animacje.cpp" />
     <ClCompile Include="karty.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="Zasady.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Menu.h" />
     <ClInclude Include="naglowek.h" />
+    <ClInclude Include="Zasady.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

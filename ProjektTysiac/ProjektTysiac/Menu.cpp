@@ -45,24 +45,20 @@ void Menu::wDol() {
 	if (opcja < 2) {
 		opcja++;
 		poleMenu.setPosition(sf::Vector2f(menu[opcja].getPosition().x, menu[opcja].getPosition().y ));
-		std::cout << " w dol dziala : " <<opcja;
 	}
 	else {
 		opcja = 0;
 		poleMenu.setPosition(sf::Vector2f(menu[opcja].getPosition().x, menu[opcja].getPosition().y));
-		std::cout << " w dol NIEdziala : " << opcja;
 	}
 }
 void Menu::wGore() {
 	if (opcja > 0) {	
 		opcja--;
 		poleMenu.setPosition(sf::Vector2f(menu[opcja].getPosition().x, menu[opcja].getPosition().y));
-		std::cout << " w gore dziala : " << opcja;
 	}
 	else {
 		opcja = 2;
 		poleMenu.setPosition(sf::Vector2f(menu[opcja].getPosition().x, menu[opcja].getPosition().y));
-		std::cout << " w gore NIEdziala : " << opcja;
 	}
 }
 int Menu::getOpcja() {

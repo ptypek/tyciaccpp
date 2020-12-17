@@ -18,6 +18,7 @@ void przetasujKarty(Karta[]);  // Tasowanie kart w talii
 void rozdanie(Karta[], Karta[], Karta[], Karta[], Karta[]);
 void przypiszObraz(Karta[],sf::Texture*);
 
+
 //*******  animacje.cpp  ********//
 void move(sf::Event,sf::Vector2i, Karta[],float*, float*, int*);
 #endif
