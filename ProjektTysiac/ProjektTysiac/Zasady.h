@@ -12,6 +12,7 @@ public:
 	void ScrollWDol();
 	void ScrollReset();
 
+	
 private:
 	sf::Texture texture;
 	sf::Sprite tlo;
@@ -19,4 +20,7 @@ private:
 	sf::View view;
 
 	sf::Font font;
+	sf::Text text;
+
+	void WypiszZasady();
 };

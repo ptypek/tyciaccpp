@@ -1,5 +1,6 @@
 #include <iostream>
-#include <vector>
+#include <iostream>
+#include <fstream>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include "naglowek.h"
@@ -14,6 +15,7 @@ private:
 	sf::RectangleShape wybierzKarte;
 	sf::Texture texture;
 	sf::Texture texturePlansza;
+	sf::Texture uzytyMusik;
 	sf::View view;
 	
 	sf::Sprite plansza;
@@ -29,23 +31,32 @@ private:
 
 	Menu menu;
 	int przejscieDo;
+
 	int ktoraKarta;
+	int ktoraKartaMusik;
+	int przyznanyMusik;
 	int kartyUzyte[8];
-	bool czyReset;
+	int kartyUzyteMusik[3];
 	int doResetuZostalo;
+	bool czyReset;
+	bool czyMusik;
+	bool musikCzyNie;
 
 	Zasady zasady;
 
 	void przebieg();
 	void okno();
-	void pozycjaKart(Karta[], Karta[], Karta[]);
+	void pozycjaKart(Karta[], Karta[], Karta[], Karta[]);
 	
 	void wLewo();
 	void wPrawo();
+	void wGore();
+	void wDol();
 	void wystawKarte(Karta&);
 
 	int tmp;
 	void pobieranieWartosci(Karta&);
+	void wybierzMusik(Karta[], Karta[], Karta[], Karta[], int);
 	void reset();
 
 public:
@@ -67,13 +78,18 @@ Gra::Gra()
 	przemieszczanieKarty(false),
 	przetasowanieTalii(false),
 	czyReset(false),
+	czyMusik(true),
+	musikCzyNie(true),
 	przejscieDo(0),
 	ktoraKarta(0),
+	ktoraKartaMusik(0),
+	przyznanyMusik(0),
 	doResetuZostalo(0),
 	tmp(0)
 {
 	texture.loadFromFile("talia.png");
 	texturePlansza.loadFromFile("plansza.png");
+	uzytyMusik.loadFromFile("uzyta.png");
 	
 	plansza.setTexture(texturePlansza);
 
@@ -101,47 +117,147 @@ Gra::Gra()
 	wybierzKarte.setSize(sf::Vector2f(60.0f, 60.0f));
 	wybierzKarte.setFillColor(sf::Color::Red);
 	wybierzKarte.setOrigin(sf::Vector2f(wybierzKarte.getGlobalBounds().width / 2, wybierzKarte.getGlobalBounds().height / 2));
-	wybierzKarte.setPosition(sf::Vector2f(120.0f, 80.0f));
+	if (czyMusik) {
+		wybierzKarte.setPosition(sf::Vector2f(450.0f, 450.0f));
+	}
+	else {
+		wybierzKarte.setPosition(sf::Vector2f(120.0f, 80.0f));
+	}
 
 	for (int i = 0; i < 8; i++)
 		kartyUzyte[i] = -1;
+	for (int i = 0; i < 3; i++)
+		kartyUzyteMusik[i] = -1;
 }
 
-void Gra::pozycjaKart(Karta gracz1[8], Karta gracz2[8], Karta gracz3[8]) {
+void Gra::pozycjaKart(Karta gracz1[8], Karta gracz2[8], Karta gracz3[8], Karta musik[3]) {
 	for (int i = 0; i < 8; i++) {
-		gracz1[i].card.setPosition(sf::Vector2f(120.0f + (110.0f * i), 80.0f ));
-		gracz3[i].card.setPosition(sf::Vector2f(120.0f + (110.0f * i), 700.0f ));
+		gracz1[i].card.setPosition(sf::Vector2f(120.0f + (110.0f * i), 80.0f));
+		gracz3[i].card.setPosition(sf::Vector2f(120.0f + (110.0f * i), 700.0f));
 		gracz2[i].card.setPosition(sf::Vector2f(1100.0f, 100.0f + (100.0f * i)));
 	}
+	for (int i = 0; i < 3; i++) {
+		musik[i].card.setPosition(sf::Vector2f(450.0f + (110.0f * i), 450.0f));
+	}
 }
+
 
 //**************Wybór kart******************//
 
 void Gra::wLewo() {
-	if (ktoraKarta >= 0 ) {
-		do {
-			if (ktoraKarta == 0)
-				ktoraKarta = 6;
-			else
-			ktoraKarta--;
-		} while (ktoraKarta == kartyUzyte[ktoraKarta]);
-		wybierzKarte.setPosition(sf::Vector2f(gracz1[ktoraKarta].card.getPosition().x, gracz1[ktoraKarta].card.getPosition().y));
+	if (!musikCzyNie) {
+		ktoraKartaMusik = 0;
+		if (ktoraKarta >= 0) {
+			do {
+				if (ktoraKarta == 0)
+					ktoraKarta = 6;
+				else
+					ktoraKarta--;
+			} while (ktoraKarta == kartyUzyte[ktoraKarta]);
+			wybierzKarte.setPosition(sf::Vector2f(gracz1[ktoraKarta].card.getPosition().x, gracz1[ktoraKarta].card.getPosition().y));
+		}
+	}
+	else {
+		ktoraKarta = 0;
+		if (ktoraKartaMusik >= 0) {
+			do {
+				if (ktoraKartaMusik == 0)
+					ktoraKartaMusik = 2;
+				else
+					ktoraKartaMusik--;
+			} while (ktoraKartaMusik == kartyUzyteMusik[ktoraKartaMusik]);
+			wybierzKarte.setPosition(sf::Vector2f(musik[ktoraKartaMusik].card.getPosition().x, musik[ktoraKartaMusik].card.getPosition().y));
+		}
 	}
 }
 void Gra::wPrawo() {
-	if (ktoraKarta <= 6) {
-		do {
-			if (ktoraKarta == 6)
-				ktoraKarta = 0;
-			else
-				ktoraKarta++;
-		} while (ktoraKarta == kartyUzyte[ktoraKarta]);
-		wybierzKarte.setPosition(sf::Vector2f(gracz1[ktoraKarta].card.getPosition().x, gracz1[ktoraKarta].card.getPosition().y));
+	if (!musikCzyNie) {
+		ktoraKartaMusik = 0;
+		if (ktoraKarta <= 6) {
+			do {
+				if (ktoraKarta == 6)
+					ktoraKarta = 0;
+				else
+					ktoraKarta++;
+			} while (ktoraKarta == kartyUzyte[ktoraKarta]);
+			wybierzKarte.setPosition(sf::Vector2f(gracz1[ktoraKarta].card.getPosition().x, gracz1[ktoraKarta].card.getPosition().y));
+		}
+	}
+	else {
+		ktoraKarta = 0;
+		if (ktoraKartaMusik <= 2) {
+			do {
+				if (ktoraKartaMusik == 2)
+					ktoraKartaMusik = 0;
+				else
+					ktoraKartaMusik++;
+			} while (ktoraKartaMusik == kartyUzyte[ktoraKartaMusik]);
+			wybierzKarte.setPosition(sf::Vector2f(musik[ktoraKartaMusik].card.getPosition().x, musik[ktoraKartaMusik].card.getPosition().y));
+		}
+	}
+}
+void Gra::wGore() {
+	if (musikCzyNie) {
+		wybierzKarte.setPosition(sf::Vector2f(gracz1[0].card.getPosition().x, gracz1[0].card.getPosition().y));
+		musikCzyNie = false;
+	}
+	else {
+		wybierzKarte.setPosition(sf::Vector2f(musik[0].card.getPosition().x, musik[0].card.getPosition().y));
+		musikCzyNie = true;
+	}
+}
+void Gra::wDol() {
+	if (!musikCzyNie) {
+		wybierzKarte.setPosition(sf::Vector2f(musik[0].card.getPosition().x, musik[0].card.getPosition().y));
+		musikCzyNie = true;
+	}
+	else {
+		wybierzKarte.setPosition(sf::Vector2f(gracz1[0].card.getPosition().x, gracz1[0].card.getPosition().y));
+		musikCzyNie = false;
 	}
 }
 void Gra::wystawKarte(Karta& karta) {
 	karta.card.setPosition(sf::Vector2f(550.0f, 400.0f));
 	wybierzKarte.setPosition(sf::Vector2f(karta.card.getPosition().x, karta.card.getPosition().y));
+}
+/*Do naprawy  ----> Wartoœci i parametry s¹ pobierane, jednak nie pokazuje siê obraz karty */
+void Gra::wybierzMusik(Karta musik[3], Karta gracz1[8], Karta gracz2[8], Karta gracz3[8], int ktoraKartaMusik) {
+	sf::Vector2u textureSize = texture.getSize();
+	textureSize.x /= 6;
+	textureSize.y /= 4;
+	int x = musik[ktoraKartaMusik].wartosc / 6;
+	int y = musik[ktoraKartaMusik].wartosc % 6;
+
+	switch (przyznanyMusik) {
+	case 0:
+		gracz1[7].figura = musik[ktoraKartaMusik].figura;
+		gracz1[7].kolor = musik[ktoraKartaMusik].kolor;
+		gracz1[7].wartosc = musik[ktoraKartaMusik].wartosc;
+		gracz1[7].card.setTextureRect(sf::IntRect(textureSize.x * x, textureSize.y * y, textureSize.x, textureSize.y));
+		gracz1[7].card.setPosition(sf::Vector2f(890.0f, 80.0f));
+		musik[ktoraKartaMusik].card.setTexture(uzytyMusik);
+		break;
+	case 1:
+		gracz2[7].figura = musik[ktoraKartaMusik].figura;
+		gracz2[7].kolor = musik[ktoraKartaMusik].kolor;
+		gracz2[7].wartosc = musik[ktoraKartaMusik].wartosc;
+		gracz2[7].card.setTextureRect(sf::IntRect(textureSize.x * x, textureSize.y * y, textureSize.x, textureSize.y));
+		musik[ktoraKartaMusik].card.setTexture(uzytyMusik);
+		break;
+	case 2:
+		gracz3[7].figura = musik[ktoraKartaMusik].figura;
+		gracz3[7].kolor = musik[ktoraKartaMusik].kolor;
+		gracz3[7].wartosc = musik[ktoraKartaMusik].wartosc;
+		gracz3[7].card.setTextureRect(sf::IntRect(textureSize.x * x, textureSize.y * y, textureSize.x, textureSize.y));
+		musik[ktoraKartaMusik].card.setTexture(uzytyMusik);
+		przyznanyMusik = 0;
+		wybierzKarte.setPosition(sf::Vector2f(120.0f, 80.0f));
+		musikCzyNie = false;
+		break;
+	}
+
+	przyznanyMusik++;
+
 }
 
 //*************Mechanika gry****************//
@@ -196,12 +312,13 @@ void Gra::pobieranieWartosci(Karta& kartaGracza) {
 	tmp++;
 }
 
+
 void Gra::reset() {
 	doResetuZostalo++;
-	if (doResetuZostalo == 5 || czyReset == true) {
+	if (doResetuZostalo == 8 || czyReset == true) {
 		przetasujKarty(talia);
 		rozdanie(gracz1, gracz2, gracz3, talia, musik);
-		pozycjaKart(gracz1, gracz2, gracz3);
+		pozycjaKart(gracz1, gracz2, gracz3, musik);
 		doResetuZostalo = 0;
 		if (czyReset == true) {
 			pkt1 = 0;
@@ -214,7 +331,10 @@ void Gra::reset() {
 		for (int i = 0; i < 8; i++)
 			kartyUzyte[i] = -1;
 		czyReset = false;
+		czyMusik = true;
+		musikCzyNie = true;
 		tmp = 0;
+		przyznanyMusik = 0;
 	}
 }
 
@@ -242,7 +362,7 @@ void Gra::przebieg() {
 						przejscieDo = 1;
 						przetasujKarty(talia);
 						rozdanie(gracz1, gracz2, gracz3, talia, musik);
-						pozycjaKart(gracz1, gracz2, gracz3);
+						pozycjaKart(gracz1, gracz2, gracz3, musik);
 						break;
 					case 1:
 						przejscieDo = 2;
@@ -265,14 +385,25 @@ void Gra::przebieg() {
 					wPrawo();
 					break;
 				case sf::Keyboard::A:
-					wystawKarte(gracz1[ktoraKarta]);
-					pobieranieWartosci(gracz1[ktoraKarta]);
-					kartyUzyte[ktoraKarta] = ktoraKarta;
-					wPrawo();
+					if (czyMusik) {
+						wybierzMusik(musik, gracz1, gracz2, gracz3, ktoraKartaMusik);
+					}
+					else {
+						wystawKarte(gracz1[ktoraKarta]);
+						pobieranieWartosci(gracz1[ktoraKarta]);
+						kartyUzyte[ktoraKarta] = ktoraKarta;
+						wPrawo();
+					}
 					break;
 				case sf::Keyboard::R:
 					czyReset = true;
 					reset();
+					break;
+				case sf::Keyboard::Down:
+					wDol();
+					break;
+				case sf::Keyboard::Up:
+					wGore();
 					break;
 				}
 				
@@ -318,6 +449,11 @@ void Gra::okno() {
 			window.draw(gracz2[i].card);
 			window.draw(gracz3[i].card);
 		}
+		if (czyMusik) {
+			for (int i = 0; i < 3; i++) {
+				window.draw(musik[i].card);
+			}
+		}
 		window.draw(punkty1);
 		window.draw(punkty2);
 		window.draw(punkty3);
@@ -339,109 +475,41 @@ void Gra::rozpocznij() {
 int main() {
 	Gra gra;
 	gra.rozpocznij();
+	/*ifstream zPliku("pliczek.txt");
+	if (zPliku) {
+		int liczba;
+		cout << "Udalo sie otworzyc";
+		while (zPliku >> liczba)
+			cout << liczba << endl;
+	}
+	else {
+		cout << "Nie udalo sie otworzyc";
+	}*/
 
-	
-	//sf::RenderWindow window(sf::VideoMode(1200, 800), "Gra w tysiaca", sf::Style::Close | sf::Style::Resize);
-	//Karta talia[24];
-	//Karta gracz1[7], gracz2[7], gracz3[7], musik[3];
-	//sf::RectangleShape porownanie(sf::Vector2f(250.0f, 250.0f));
-	//porownanie.setFillColor(sf::Color::Red);
-
-	//sf::Texture texture;
-	//texture.loadFromFile("talia.png");
-	//sf::Texture texturaPlansza;
-	//texturaPlansza.loadFromFile("plansza.png");
-	//sf::Sprite plansza;
-	//plansza.setTexture(texturaPlansza);
-	//
-	//sf::Font czcionka;
-	//czcionka.loadFromFile("sansation.ttf");
-	//int c = 152;
-
-	//sf::Text punkty1, punkty2, punkty3;
-	//punkty1.setFont(czcionka);
-	//punkty1.setString(to_string(c));
-	//
-	//float a = 50.0f, b = 50.0f;
-	//int n = 0;
-	//przypiszObraz(talia, &texture);
-	//
-	//bool isMove = false;
-	//float dx = 0, dy = 0;
-	//float* wskdx = &dx;
-	//float* wskdy = &dy;
-	//int* wskn = &n;
-	//wczytajKarty(talia);
-	//przetasujKarty(talia);
-	//rozdanie(gracz1, gracz2, gracz3, talia, musik);
-
-	//for (int i = 0; i < 7; i++) {
-	//	gracz1[i].card.setPosition(sf::Vector2f(a, b));
-	//	gracz3[i].card.setPosition(sf::Vector2f(a, b + 620.0f));
-	//	a += 140.0f;
-	//}
-	//b = 75.0f;
-	//for (int i = 0; i < 7; i++) {
-	//	gracz2[i].card.setPosition(sf::Vector2f(1100.0f, b));
-	//	b += 100.0f;
-	//}
-
-	//while (window.isOpen()) {
-	//	sf::Event e;
-	//	sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
-	//	while (window.pollEvent(e)) {
-	//		if (e.type == sf::Event::Closed)
-	//			window.close();
-	//		if (e.type == sf::Event::KeyPressed)
-	//			if (e.key.code == sf::Keyboard::A)
-	//				cout << "dziala";
-	//	}
-	//	
-
-	//	//******movement***************//
-	//	if (e.type == sf::Event::MouseButtonPressed)
-	//		if (e.key.code == sf::Mouse::Left)
-	//			for(int i=0;i<24;i++)
-	//				if (gracz1[i].card.getGlobalBounds().contains(static_cast<float>(mousePosition.x), static_cast<float>(mousePosition.y))) {
-	//					isMove = true;
-	//					n = i;
-	//					dx = mousePosition.x - gracz1[i].card.getPosition().x;
-	//					dy = mousePosition.y - gracz1[i].card.getPosition().y;
-	//				}
-
-	//	if (e.type == sf::Event::MouseButtonReleased)
-	//		if (e.key.code == sf::Mouse::Left) {
-	//			isMove = false;
-	//		}
-	//	if (isMove)
-	//		gracz1[n].card.setPosition(mousePosition.x - dx, mousePosition.y - dy);
-
-	//	window.clear();
-	//	window.draw(plansza);
-	//	window.draw(punkty1);
-	//	for (int i = 0; i < 7; i++) {
-	//		window.draw(gracz1[i].card);
-	//		window.draw(gracz2[i].card);
-	//		window.draw(gracz3[i].card);
-	//	}
-	//	window.display();
-	//}
 	return 0;
 }
 
 //****************TO-DO LIST*********************
 /*   __________________________________________________________________________________________________
-	|- przycisk R jako reset/ od poczatku - (resetuje punkty, ustawienie kart, przetasowuje karty)     |
+	|* przycisk R jako reset/ od poczatku - (resetuje punkty, ustawienie kart, przetasowuje karty)     |
 	|	~reset musi nastepowac po kazdej wygranej rundzie, bez resetu punktow (jakis bool)			   |  <- Zrobione
 	|__________________________________________________________________________________________________|
-	-normalne liczenie punktow, po osiagnieciu w ktorejs turze 1000 pkt, sprawdzane jest, kto ma najwiecej, ten wygrywa (³adny napis)
+	*normalne liczenie punktow, po osiagnieciu w ktorejs turze 1000 pkt, sprawdzane jest, kto ma najwiecej, ten wygrywa (³adny napis)
 	
-	-zamiast zasady napisac instrukja |-> sterowanie (ruszajace sie strzalki, a[accept] do zatwierdzania, r[reset] do resetu od podstaw)
+	*zamiast zasady napisac instrukja |-> sterowanie (ruszajace sie strzalki, a[accept] do zatwierdzania, r[reset] do resetu od podstaw)
 									  |-> zasady gry (rozdanie, licytacja, meldunki (moze jakies ilustracje), musik, przebieg, zakonczenie.
 		
-	-meldunek, tworzenie tablicy kroli i dam, jezeli sa w kartach, jezeli maja ten sam kolor to meldunek ++.
+	*meldunek, tworzenie tablicy kroli i dam, jezeli sa w kartach, jezeli maja ten sam kolor to meldunek ++.
 		|-> jezeli jest wiecej meldunkow to mozemy wybrac ktory meldunek chcemy
 		|-> zameldowac mozna po kliknieciu M , jezeli ilosc meldunkow jest > 0 to funkcja sie wykona
+	
+	
+	*wypisywanie musiku i wybieranie go 
 
-		
+	===
+		if wybrana z musiku
+			to dodaj do gracza
+		if not
+			wybrana dodaj do gracza tego innego niz ja 
+			zamien moja wybrana z musiskiem miejscami 
 */

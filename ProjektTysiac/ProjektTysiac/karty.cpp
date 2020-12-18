@@ -120,5 +120,4 @@ Problem 1 - naprawione (wskaznik do obrazka)
 	* W mainie dzia³a bez problemu
 	
 ===================================
-
 */
