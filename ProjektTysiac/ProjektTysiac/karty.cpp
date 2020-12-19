@@ -10,7 +10,7 @@ using namespace std;
 
 
 void wczytajKarty(Karta tab[24]) {
-	cout << "Wczytuje karty";
+	cout << "Wczytuje karty" << endl;
 	string kolor[4] = { "pik", "trefl", "karo", "kier" }, figura[6] = { "9","10","J","Q","K","A" };
 	int wart{};
 
@@ -49,7 +49,7 @@ void przypiszObraz(Karta tab[24], sf::Texture* texture) {
 } 
 
 void przetasujKarty(Karta tab[24]) {
-	cout << "Tasuje ";
+	cout << "Tasuje " <<endl;
 	Karta tmp;
 	random_device device;
 	mt19937 generator(device());
