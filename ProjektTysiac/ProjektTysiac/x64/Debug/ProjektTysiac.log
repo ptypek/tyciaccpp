@@ -1,12 +1,1 @@
-﻿  main.cpp
-C:\Users\balsa\ProjektProgramowanieI\tyciaccpp\ProjektTysiac\ProjektTysiac\main.cpp(67,43): warning C4244: "argument": konwersja z "T" do "float", możliwa utrata danych
-          with
-          [
-              T=unsigned int
-          ]
-C:\Users\balsa\ProjektProgramowanieI\tyciaccpp\ProjektTysiac\ProjektTysiac\main.cpp(67,23): warning C4244: "argument": konwersja z "T" do "float", możliwa utrata danych
-          with
-          [
-              T=unsigned int
-          ]
-  ProjektTysiac.vcxproj -> C:\Users\balsa\ProjektProgramowanieI\tyciaccpp\ProjektTysiac\x64\Debug\ProjektTysiac.exe
+﻿  ProjektTysiac.vcxproj -> C:\Users\balsa\ProjektProgramowanieI\tyciaccpp\ProjektTysiac\x64\Debug\ProjektTysiac.exe

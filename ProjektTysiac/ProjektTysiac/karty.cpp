@@ -20,6 +20,7 @@ void wczytajKarty(Karta tab[24]) {
 			tab[wart].figura = figura[j];		
 			tab[wart].kolor = kolor[i];
 			tab[wart].wartosc = wart;
+			tab[wart].uzyta = false;
 			wart++;
 		}
 	}

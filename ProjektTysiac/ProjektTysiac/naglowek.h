@@ -8,6 +8,7 @@ public:
 	std::string figura;
 	int wartosc{};
 	sf::Sprite card;
+	bool uzyta;
 };
 
 
