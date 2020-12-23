@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include "naglowek.h"
@@ -30,17 +31,27 @@ private:
 	int przejscieDo;
 
 	int ktoraKarta;
-	int kartaDoWyrzucenia;
 	int ktoraKartaMusik;
 	int przyznanyMusik;
 	int kartyUzyte[8];
 	int kartyUzyteMusik[3];
 	int doResetuZostalo;
 	int wygrywaG1, wygrywaG2, wygrywaG3;
+	int prowadziGracz;
 	bool czyReset;
 	bool czyMusik;
 	bool musikCzyNie;
 	bool wystawienie;
+	pair<bool,bool> czyJaProwadze;
+
+	pair<pair<bool, int>,string> meldunekKrole[4];
+	pair<pair<bool, int>,string> meldunekKrolowe[4];
+	bool jakiMeldunek1[4];
+	bool jakiMeldunek2[4];
+	bool jakiMeldunek3[4];
+	int ileMeldunkow;
+	sf::Text meldunek[4];
+	Karta wybranaPrzezBota;
 
 	Karta* poprzednia1;
 	Karta* poprzednia2;
@@ -57,12 +68,18 @@ private:
 	void wystawKarte(Karta&);
 
 	int tmp, tmp2{};
-	void pobieranieWartosci(Karta&);
+	void pobieranieWartosci(Karta&, Karta&);
 	Karta pobierzWartosciBot(Karta&, Karta[], float);
+	Karta pobierzWartosciBot(Karta[], float);
 	void pobierzAdresBot(Karta&);
 	void wybierzMusik();
 	void reset();
 	void usunKarty();
+
+	void czyMeldunek(Karta[], bool[]);
+	void podajMeldunek(bool[]);
+
+	void mechanika(Karta&, Karta&, Karta&);
 
 public:
 	Gra();
@@ -82,18 +99,20 @@ Gra::Gra()
 	czyMusik(true),
 	musikCzyNie(true),
 	wystawienie(true),
+	czyJaProwadze(true, true),
 	poprzednia1(nullptr),
 	poprzednia2(nullptr),
 	poprzednia3(nullptr),
 	przejscieDo(0),
 	ktoraKarta(0),
-	kartaDoWyrzucenia(0),
 	ktoraKartaMusik(0),
 	przyznanyMusik(0),
 	doResetuZostalo(0),
+	ileMeldunkow(0),
 	wygrywaG1(0),
 	wygrywaG2(0),
 	wygrywaG3(0),
+	prowadziGracz(1),
 	tmp(0)
 {
 	texture.loadFromFile("talia.png");
@@ -150,6 +169,31 @@ Gra::Gra()
 		kartyUzyte[i] = -1;
 	for (int i = 0; i < 3; i++)
 		kartyUzyteMusik[i] = -1;
+
+	for (int i = 0; i < 4; i++) {
+		meldunekKrole[i].first.second = 0;
+		meldunekKrole[i].first.first = false;
+		meldunekKrolowe[i].first.second = 0;
+		meldunekKrolowe[i].first.first = false;
+		jakiMeldunek1[i] = false;
+		jakiMeldunek2[i] = false;
+		jakiMeldunek3[i] = false;
+		meldunek[i].setFont(czcionka);
+		meldunek[i].setString("");
+		meldunek[i].setPosition(sf::Vector2f(-100.0f, -100.0f));
+	}
+	meldunekKrole[0].second = "karo";
+	meldunekKrolowe[0].second = "karo";
+	meldunekKrole[1].second = "kier";
+	meldunekKrolowe[1].second = "kier";
+	meldunekKrole[2].second = "pik";
+	meldunekKrolowe[2].second = "pik";
+	meldunekKrole[3].second = "trefl";
+	meldunekKrolowe[3].second = "trefl";
+	meldunek[0].setString("karo");
+	meldunek[1].setString("kier");
+	meldunek[2].setString("pik");
+	meldunek[3].setString("trefl");
 }
 
 void Gra::pozycjaKart() {
@@ -239,6 +283,7 @@ void Gra::wybierzMusik() {
 		gracz1[7].card.setPosition(sf::Vector2f(890.0f, 80.0f));
 		gracz1[7].card.setOrigin(sf::Vector2f(gracz1[7].card.getGlobalBounds().width / 2, gracz1[7].card.getGlobalBounds().height / 2));
 		musik[ktoraKartaMusik].card.setTexture(uzytyMusik);
+		czyMeldunek(gracz1, jakiMeldunek1);
 		break;
 	case 1:
 		gracz2[7].figura = musik[ktoraKartaMusik].figura;
@@ -249,6 +294,7 @@ void Gra::wybierzMusik() {
 		gracz2[7].card.setPosition(sf::Vector2f(890.0f, 700.0f));
 		gracz2[7].card.setOrigin(sf::Vector2f(gracz2[7].card.getGlobalBounds().width / 2, gracz2[7].card.getGlobalBounds().height / 2));
 		musik[ktoraKartaMusik].card.setTexture(uzytyMusik);
+		czyMeldunek(gracz2, jakiMeldunek2);
 		break;
 	case 2:
 		gracz3[7].figura = musik[ktoraKartaMusik].figura;
@@ -263,6 +309,7 @@ void Gra::wybierzMusik() {
 		wybierzKarte.setPosition(sf::Vector2f(gracz1[0].card.getPosition().x, gracz1[0].card.getPosition().y));
 		musikCzyNie = false;
 		czyMusik = false;
+		czyMeldunek(gracz3, jakiMeldunek3);
 		break;
 	}
 
@@ -272,100 +319,100 @@ void Gra::wybierzMusik() {
 
 //*************Mechanika gry****************//
 void Gra::usunKarty() {
-	/*poprzednia1->card.setPosition(sf::Vector2f(300.0f, 300.0f));
-	poprzednia2->card.setPosition(sf::Vector2f(400.0f, 300.0f));
-	poprzednia3->card.setPosition(sf::Vector2f(500.0f, 300.0f));
-	cout << "usunelo sie" << endl;*/
+	poprzednia1->card.setPosition(sf::Vector2f(-100.0f, -100.0f));
+	poprzednia2->card.setPosition(sf::Vector2f(-100.0f, -100.0f));
+	poprzednia3->card.setPosition(sf::Vector2f(-100.0f, -100.0f));
 }
-
-
-void Gra::pobieranieWartosci(Karta& kartaGracza) {
-
-	if (poprzednia1 != nullptr) {
-		poprzednia1->card.setPosition(sf::Vector2f(300.0f,300.0f));
-		poprzednia2->card.setPosition(sf::Vector2f(600.0f, 600.0f));
-		poprzednia3->card.setPosition(sf::Vector2f(800.0f, 800.0f));
+void Gra::czyMeldunek(Karta kartyGracza[], bool jakiMeldunek[]){
+	for (int i = 0; i < 8; i++) {
+		if (kartyGracza[i].figura == "K") {
+			if (kartyGracza[i].kolor == "karo") {
+				meldunekKrole[0].first.first = true;
+				meldunekKrole[0].first.second = i;
+			}
+			else if (kartyGracza[i].kolor == "kier") {
+				meldunekKrole[1].first.first = true;
+				meldunekKrole[1].first.second = i;
+			}
+			else if (kartyGracza[i].kolor == "pik") {
+				meldunekKrole[2].first.first = true;
+				meldunekKrole[2].first.second = i;
+			}
+			else if (kartyGracza[i].kolor == "trefl") {
+				meldunekKrole[3].first.first = true;
+				meldunekKrole[3].first.second = i;
+			}
+		}
+		else if (kartyGracza[i].figura == "Q") {
+			if (kartyGracza[i].kolor == "karo") {
+				meldunekKrolowe[0].first.first = true;
+				meldunekKrolowe[0].first.second = i;
+			}
+			else if (kartyGracza[i].kolor == "kier") {
+				meldunekKrolowe[1].first.first = true;
+				meldunekKrolowe[1].first.second = i;
+			}
+			else if (kartyGracza[i].kolor == "pik") {
+				meldunekKrolowe[2].first.first = true;
+				meldunekKrolowe[2].first.second = i;
+			}
+			else if (kartyGracza[i].kolor == "trefl") {
+				meldunekKrolowe[3].first.first = true;
+				meldunekKrolowe[3].first.second = i;
+			}
+		}
 	}
-	Karta kartaGracza2 = pobierzWartosciBot(kartaGracza, gracz2, a);
-	Karta kartaGracza3 = pobierzWartosciBot(kartaGracza, gracz3, b);
-
-
-
-	poprzednia1 = &kartaGracza;
+	for (int i = 0; i < 4; i++) {
+		if (meldunekKrole[i].first.first == true && meldunekKrolowe[i].first.first == true) {
+			jakiMeldunek[i] = true;
+			ileMeldunkow++;
+		}
+	}
+	podajMeldunek(jakiMeldunek);
+	for (int i = 0; i < 4; i++) {
+		meldunekKrole[i].first.first = false;
+		meldunekKrolowe[i].first.first = false;
+		meldunekKrole[i].first.second = 0;
+		meldunekKrolowe[i].first.second = 0;
+	}
+}
+void Gra::podajMeldunek(bool jakiMeldunek[]) {
+	if (ileMeldunkow != 0) {
+		for (int i = 0; i < 4; i++) {
+			if (jakiMeldunek[i] == true) {
+				cout << "Mamy meldunek gracza: " << meldunekKrole[i].second << endl ;
+			}
+		}
+	}
+}
+void Gra::pobieranieWartosci(Karta& kartaGracza, Karta& kartaBota) {
 	
-
-	cout << "Gracz1: " << kartaGracza.figura << "___" << kartaGracza.kolor << "___" << kartaGracza.wartosc << endl;
-	cout << "Gracz2: " << kartaGracza2.figura << "___" << kartaGracza2.kolor << "___" << kartaGracza2.wartosc << endl;
-	cout << "Gracz3: " << kartaGracza3.figura << "___" << kartaGracza3.kolor << "___" << kartaGracza3.wartosc << endl;
-
-	if (kartaGracza.kolor == kartaGracza2.kolor && kartaGracza.kolor == kartaGracza3.kolor) {
-		if (kartaGracza.wartosc > kartaGracza2.wartosc && kartaGracza.wartosc > kartaGracza3.wartosc) {
-			cout << "  Wygrywa gracz 1 (te same kolory)  "<<endl;
-			pkt1 ++ ;
-			wygrywaG1 = 1;
-		}
-		else if (kartaGracza2.wartosc > kartaGracza.wartosc && kartaGracza2.wartosc > kartaGracza3.wartosc) {
-			cout << "  Wygrywa gracz 2 (te same kolory)  " << endl;
-			pkt2++;
-			wygrywaG2 = 1;
-		}
-		else if (kartaGracza3.wartosc > kartaGracza.wartosc && kartaGracza3.wartosc > kartaGracza2.wartosc) {
-			cout << "  Wygrywa gracz 3 (te same kolory)  " << endl;
-			pkt3++;
-			wygrywaG3 = 1;
-		}
+	Karta kartaGracza2, kartaGracza3;
+	if (czyJaProwadze.first == true && czyJaProwadze.second == true) {
+		kartaGracza2 = pobierzWartosciBot(kartaGracza, gracz2, a);
+		kartaGracza3 = pobierzWartosciBot(kartaGracza, gracz3, b);
+		mechanika(kartaGracza, kartaGracza2, kartaGracza3);
 	}
-	else if (kartaGracza.kolor == kartaGracza2.kolor) {
-		if (kartaGracza.wartosc > kartaGracza2.wartosc) {
-			cout << "  Wygrywa gracz 1 (gracz 2 i 1 te same kolory)  " << endl;
-			pkt1++;
-			wygrywaG1 = 1;
-		}
-		else {
-			cout << "  Wygrywa gracz 2 (gracz 2 i 1 te same kolory)  " << endl;
-			pkt2++;
-			wygrywaG2 = 1;
-		}
+	else if (czyJaProwadze.first == false && czyJaProwadze.second == true) {
+		kartaGracza3 = pobierzWartosciBot(kartaBota, gracz3, b);
+		mechanika(kartaGracza, kartaBota, kartaGracza3);
 	}
-	else if (kartaGracza.kolor == kartaGracza3.kolor) {
-		if (kartaGracza.wartosc > kartaGracza3.wartosc) {
-			cout << "  Wygrywa gracz 1 (gracz 2 i 1 te same kolory)  " << endl;
-			pkt1++;
-			wygrywaG1 = 1;
-		}
-		else {
-			cout << "  Wygrywa gracz 3 (gracz 2 i 1 te same kolory)  " << endl;
-			pkt3++;
-			wygrywaG3 = 1;
-		}
+	else if (czyJaProwadze.first == true && czyJaProwadze.second == false) {
+		kartaGracza2 = pobierzWartosciBot(kartaBota, gracz2, a);
+		mechanika(kartaGracza, kartaGracza2, kartaBota);
 	}
-	else {
-		cout << "  Wygrywa gracz 1 (brak kolorow)     " << endl;
-		pkt1++;
-		wygrywaG1 = 1;
-	}
+	poprzednia1 = &kartaGracza;
+	//pobierzAdresBot(kartaGracza2);
+	//pobierzAdresBot(kartaGracza3);
 	tmp++;
-	reset(); 
 	punkty1.setString(to_string(pkt1));
 	punkty2.setString(to_string(pkt2));
 	punkty3.setString(to_string(pkt3));
 }
 
-Karta Gra::pobierzWartosciBot(Karta& kartaGracza, Karta kartaBota[], float x){
+Karta Gra::pobierzWartosciBot(Karta kartaBota[], float x) {
 	int indexKartyBota{};
 	int wartosc{};
-	for (int i = 0; i < 8; i++) {
-		if (kartaGracza.kolor == kartaBota[i].kolor && kartaBota[i].uzyta == false) {
-			if (kartaBota[i].wartosc > wartosc) {
-				wartosc = kartaBota[i].wartosc;
-				indexKartyBota = i;
-				cout << "    if wart > wart     ";
-			}
-			cout << "  if kol == kol    ";
-		}
-		cout << "1forek" << "    ";
-	}
-	cout <<endl<< indexKartyBota << " <-- index karty | wartosc ---->" << wartosc << endl;
 	if (wartosc == 0 && indexKartyBota == 0) {
 		for (int i = 0; i < 8; i++) {
 			if (kartaBota[i].uzyta == false) {
@@ -374,14 +421,39 @@ Karta Gra::pobierzWartosciBot(Karta& kartaGracza, Karta kartaBota[], float x){
 			}
 		}
 	}
-	cout << indexKartyBota << " <-- index karty2 | wartosc2 ---->" << wartosc << endl;
+	cout << "Bot wygywa i wybiera: " << kartaBota[indexKartyBota].figura << "   " << kartaBota[indexKartyBota].kolor << endl;
 	kartaBota[indexKartyBota].uzyta = true;
 	kartaBota[indexKartyBota].card.setPosition(sf::Vector2f(x, 400.0f));
 	pobierzAdresBot(kartaBota[indexKartyBota]);
 	return kartaBota[indexKartyBota];
 }
-
+Karta Gra::pobierzWartosciBot(Karta& kartaGracza, Karta kartaBota[], float x){
+	int indexKartyBota{};
+	int wartosc{};
+	for (int i = 0; i < 8; i++) {
+		if (kartaGracza.kolor == kartaBota[i].kolor && kartaBota[i].uzyta == false) {
+			if (kartaBota[i].wartosc > wartosc) {
+				wartosc = kartaBota[i].wartosc;
+				indexKartyBota = i;
+			}
+		}
+	}
+	if (wartosc == 0 && indexKartyBota == 0) {
+		for (int i = 0; i < 8; i++) {
+			if (kartaBota[i].uzyta == false) {
+				indexKartyBota = i;
+				break;
+			}
+		}
+	}
+	cout << "Bot przegrywa i wybiera: " << kartaBota[indexKartyBota].figura << "   " << kartaBota[indexKartyBota].kolor << endl;
+	kartaBota[indexKartyBota].uzyta = true;
+	kartaBota[indexKartyBota].card.setPosition(sf::Vector2f(x, 400.0f));
+	pobierzAdresBot(kartaBota[indexKartyBota]);
+	return kartaBota[indexKartyBota];
+}
 void Gra::pobierzAdresBot(Karta& kartaBot){
+	cout <<"Co sie kryje w adresie: " << kartaBot.figura << "  " << kartaBot.kolor << endl;
 	if (tmp2 == 0) {
 		poprzednia2 = &kartaBot;
 		tmp2 = 1;
@@ -392,18 +464,249 @@ void Gra::pobierzAdresBot(Karta& kartaBot){
 	}
 }	
 
+void Gra::mechanika(Karta& kartaGracza, Karta& kartaGracza2, Karta& kartaGracza3) {
 
-
+	cout << "Gracz1: " << kartaGracza.figura << "___" << kartaGracza.kolor << "___" << kartaGracza.wartosc << endl;
+	cout << "Gracz2: " << kartaGracza2.figura << "___" << kartaGracza2.kolor << "___" << kartaGracza2.wartosc << endl;
+	cout << "Gracz3: " << kartaGracza3.figura << "___" << kartaGracza3.kolor << "___" << kartaGracza3.wartosc << endl;
+	if (czyJaProwadze.first == true && czyJaProwadze.second == true) {
+		if (kartaGracza.kolor == kartaGracza2.kolor && kartaGracza.kolor == kartaGracza3.kolor) {
+			if (kartaGracza.wartosc > kartaGracza2.wartosc && kartaGracza.wartosc > kartaGracza3.wartosc) {
+				cout << "  Wygrywa gracz 1 (te same kolory)  " << endl;
+				pkt1++;
+				wygrywaG1 = 1;
+				prowadziGracz = 1;
+				czyJaProwadze.first = true;
+				czyJaProwadze.second = true;
+			}
+			else if (kartaGracza2.wartosc > kartaGracza.wartosc && kartaGracza2.wartosc > kartaGracza3.wartosc) {
+				cout << "  Wygrywa gracz 2 (te same kolory)  " << endl;
+				pkt2++;
+				wygrywaG2 = 1;
+				prowadziGracz = 2;
+				czyJaProwadze.first = false;
+				czyJaProwadze.second = true;
+			}
+			else if (kartaGracza3.wartosc > kartaGracza.wartosc && kartaGracza3.wartosc > kartaGracza2.wartosc) {
+				cout << "  Wygrywa gracz 3 (te same kolory)  " << endl;
+				pkt3++;
+				wygrywaG3 = 1;
+				prowadziGracz = 3;
+				czyJaProwadze.first = true;
+				czyJaProwadze.second = false;
+			}
+		}
+		else if (kartaGracza.kolor == kartaGracza2.kolor) {
+			if (kartaGracza.wartosc > kartaGracza2.wartosc) {
+				cout << "  Wygrywa gracz 1 (gracz 2 i 1 te same kolory)  " << endl;
+				pkt1++;
+				wygrywaG1 = 1;
+				prowadziGracz = 1;
+				czyJaProwadze.first = true;
+				czyJaProwadze.second = true;
+			}
+			else {
+				cout << "  Wygrywa gracz 2 (gracz 2 i 1 te same kolory)  " << endl;
+				pkt2++;
+				wygrywaG2 = 1;
+				prowadziGracz = 2;
+				czyJaProwadze.first = false;
+				czyJaProwadze.second = true;
+			}
+		}
+		else if (kartaGracza.kolor == kartaGracza3.kolor) {
+			if (kartaGracza.wartosc > kartaGracza3.wartosc) {
+				cout << "  Wygrywa gracz 1 (gracz 2 i 1 te same kolory)  " << endl;
+				pkt1++;
+				wygrywaG1 = 1;
+				prowadziGracz = 1;
+				czyJaProwadze.first = true;
+				czyJaProwadze.second = true;
+			}
+			else {
+				cout << "  Wygrywa gracz 3 (gracz 2 i 1 te same kolory)  " << endl;
+				pkt3++;
+				wygrywaG3 = 1;
+				prowadziGracz = 3;
+				czyJaProwadze.first = true;
+				czyJaProwadze.second = false;
+			}
+		}
+		else {
+			cout << "  Wygrywa gracz 1 (brak kolorow)     " << endl;
+			pkt1++;
+			wygrywaG1 = 1;
+			prowadziGracz = 1;
+			czyJaProwadze.first = true;
+			czyJaProwadze.second = true;
+		}
+	}
+	if (czyJaProwadze.first == false && czyJaProwadze.second == true) {
+		if (kartaGracza2.kolor == kartaGracza.kolor && kartaGracza2.kolor == kartaGracza3.kolor) {
+			if (kartaGracza2.wartosc > kartaGracza.wartosc && kartaGracza2.wartosc > kartaGracza3.wartosc) {
+				cout << "  Wygrywa gracz 2 (te same kolory)  " << endl;
+				pkt2++;
+				wygrywaG2 = 1;
+				prowadziGracz = 2;
+				czyJaProwadze.first = false;
+				czyJaProwadze.second = true;
+			}
+			else if (kartaGracza.wartosc > kartaGracza2.wartosc && kartaGracza.wartosc > kartaGracza3.wartosc) {
+				cout << "  Wygrywa gracz 1 (te same kolory)  " << endl;
+				pkt1++;
+				wygrywaG1 = 1;
+				prowadziGracz = 1;
+				czyJaProwadze.first = true;
+				czyJaProwadze.second = true;
+			}
+			else if (kartaGracza3.wartosc > kartaGracza2.wartosc && kartaGracza3.wartosc > kartaGracza.wartosc) {
+				cout << "  Wygrywa gracz 3 (te same kolory)  " << endl;
+				pkt3++;
+				wygrywaG3 = 1;
+				prowadziGracz = 3;
+				czyJaProwadze.first = true;
+				czyJaProwadze.second = false;
+			}
+		}
+		else if (kartaGracza2.kolor == kartaGracza.kolor) {
+			if (kartaGracza2.wartosc > kartaGracza.wartosc) {
+				cout << "  Wygrywa gracz 2 (gracz 2 i 1 te same kolory)  " << endl;
+				pkt2++;
+				wygrywaG2 = 1;
+				prowadziGracz = 2;
+				czyJaProwadze.first = false;
+				czyJaProwadze.second = true;
+			}
+			else {
+				cout << "  Wygrywa gracz 1 (gracz 2 i 1 te same kolory)  " << endl;
+				pkt1++;
+				wygrywaG1 = 1;
+				prowadziGracz = 1;
+				czyJaProwadze.first = true;
+				czyJaProwadze.second = true;
+			}
+		}
+		else if (kartaGracza2.kolor == kartaGracza3.kolor) {
+			if (kartaGracza2.wartosc > kartaGracza3.wartosc) {
+				cout << "  Wygrywa gracz 2 (gracz 2 i 3 te same kolory)  " << endl;
+				pkt2++;
+				wygrywaG2 = 1;
+				prowadziGracz = 2;
+				czyJaProwadze.first = false;
+				czyJaProwadze.second = true;
+			}
+			else {
+				cout << "  Wygrywa gracz 3 (gracz 2 i 1 te same kolory)  " << endl;
+				pkt3++;
+				wygrywaG3 = 1;
+				prowadziGracz = 3;
+				czyJaProwadze.first = true;
+				czyJaProwadze.second = false;
+			}
+		}
+		else {
+			cout << "  Wygrywa gracz 2 (brak kolorow)     " << endl;
+			pkt2++;
+			wygrywaG2 = 1;
+			prowadziGracz = 2;
+			czyJaProwadze.first = false;
+			czyJaProwadze.second = true;
+		}
+	}
+	if (czyJaProwadze.first == true && czyJaProwadze.second == false) {
+		if (kartaGracza3.kolor == kartaGracza2.kolor && kartaGracza3.kolor == kartaGracza.kolor) {
+			if (kartaGracza3.wartosc > kartaGracza2.wartosc && kartaGracza3.wartosc > kartaGracza.wartosc) {
+				cout << "  Wygrywa gracz 3 (te same kolory)  " << endl;
+				pkt3++;
+				wygrywaG3 = 1;
+				prowadziGracz = 3;
+				czyJaProwadze.first = true;
+				czyJaProwadze.second = false;
+			}
+			else if (kartaGracza2.wartosc > kartaGracza3.wartosc && kartaGracza2.wartosc > kartaGracza.wartosc) {
+				cout << "  Wygrywa gracz 2 (te same kolory)  " << endl;
+				pkt2++;
+				wygrywaG2 = 1;
+				prowadziGracz = 2;
+				czyJaProwadze.first = false;
+				czyJaProwadze.second = true;
+			}
+			else if (kartaGracza.wartosc > kartaGracza3.wartosc && kartaGracza.wartosc > kartaGracza2.wartosc) {
+				cout << "  Wygrywa gracz 1 (te same kolory)  " << endl;
+				pkt1++;
+				wygrywaG1 = 1;
+				prowadziGracz = 1;
+				czyJaProwadze.first = true;
+				czyJaProwadze.second = true;
+			}
+		}
+		else if (kartaGracza3.kolor == kartaGracza2.kolor) {
+			if (kartaGracza3.wartosc > kartaGracza2.wartosc) {
+				cout << "  Wygrywa gracz 3 (gracz 2 i 3 te same kolory)  " << endl;
+				pkt3++;
+				wygrywaG3 = 1;
+				prowadziGracz = 3;
+				czyJaProwadze.first = true;
+				czyJaProwadze.second = false;
+			}
+			else {
+				cout << "  Wygrywa gracz 2 (gracz 2 i 3 te same kolory)  " << endl;
+				pkt2++;
+				wygrywaG2 = 1;
+				prowadziGracz = 2;
+				czyJaProwadze.first = false;
+				czyJaProwadze.second = true;
+			}
+		}
+		else if (kartaGracza3.kolor == kartaGracza.kolor) {
+			if (kartaGracza3.wartosc > kartaGracza.wartosc) {
+				cout << "  Wygrywa gracz 3 (gracz 3 i 1 te same kolory)  " << endl;
+				pkt3++;
+				wygrywaG3 = 1;
+				prowadziGracz = 3;
+				czyJaProwadze.first = true;
+				czyJaProwadze.second = false;
+			}
+			else {
+				cout << "  Wygrywa gracz 1 (gracz 3 i 1 te same kolory)  " << endl;
+				pkt1++;
+				wygrywaG1 = 1;
+				prowadziGracz = 1;
+				czyJaProwadze.first = true;
+				czyJaProwadze.second = true;
+			}
+		}
+		else {
+			cout << "  Wygrywa gracz 3 (brak kolorow)     " << endl;
+			pkt3++;
+			wygrywaG3 = 1;
+			prowadziGracz = 3;
+			czyJaProwadze.first = true;
+			czyJaProwadze.second = false;
+		}
+	}
+}
 
 void Gra::reset() {
 	if (doResetuZostalo == 7 || czyReset == true) {
 		cout << "RESET!" << endl;
 		tmp = 0;
 		przyznanyMusik = 0;
-		przetasujKarty(talia);
-		rozdanie(gracz1, gracz2, gracz3, talia, musik);
-		pozycjaKart();
+		czyReset = false;
+		czyMusik = true;
+		musikCzyNie = true;
+		wystawienie = true;
+		poprzednia1 = nullptr;
+		poprzednia2 = nullptr;
+		poprzednia3 = nullptr;
+		czyJaProwadze.first = true;
+		czyJaProwadze.second = true;
+		gracz1[7].card.setPosition(sf::Vector2f(-100.0f, -100.0f));
+		gracz2[7].card.setPosition(sf::Vector2f(-100.0f, -100.0f));
+		gracz3[7].card.setPosition(sf::Vector2f(-100.0f, -100.0f));
+		wybierzKarte.setPosition(sf::Vector2f(450.0f, 450.0f));
 		doResetuZostalo = 0;
+		prowadziGracz = 1;
 		if (czyReset == true) {
 			pkt1 = 0;
 			pkt2 = 0;
@@ -420,20 +723,20 @@ void Gra::reset() {
 		}
 		for (int i = 0; i < 3; i++)
 			kartyUzyteMusik[i] = -1;
-		czyReset = false;
-		czyMusik = true;
-		musikCzyNie = true;
-		wystawienie = true;
-		poprzednia1 = nullptr; 
-		poprzednia2 = nullptr;
-		poprzednia3 = nullptr;
-		gracz1[7].card.setPosition(sf::Vector2f(-100.0f, -100.0f));
-		gracz2[7].card.setPosition(sf::Vector2f(-100.0f, -100.0f));
-		gracz3[7].card.setPosition(sf::Vector2f(-100.0f, -100.0f));
-		wybierzKarte.setPosition(sf::Vector2f(450.0f, 450.0f));
+		for (int i = 0; i < 4; i++) {
+			meldunekKrole[i].first.first = false;
+			meldunekKrole[i].first.second = 0;
+			meldunekKrolowe[i].first.first = false;
+			meldunekKrolowe[i].first.second = 0;
+			jakiMeldunek1[i] = false;
+			jakiMeldunek2[i] = false;
+			jakiMeldunek3[i] = false;
+		}
+		przetasujKarty(talia);
+		rozdanie(gracz1, gracz2, gracz3, talia, musik);
+		pozycjaKart();
 	}
 }
-
 
 void Gra::przebieg() {
 	sf::Event zdarzenie;
@@ -493,13 +796,22 @@ void Gra::przebieg() {
 					}
 					else {
 						if (wystawienie) {
-							wystawKarte(gracz1[ktoraKarta]);
-							pobieranieWartosci(gracz1[ktoraKarta]);
-							kartyUzyte[ktoraKarta] = ktoraKarta;
-							kartaDoWyrzucenia = ktoraKarta;
-							if (doResetuZostalo != 8)
-								wPrawo();
-							wystawienie = false;
+							if (prowadziGracz == 1) {
+								wystawKarte(gracz1[ktoraKarta]);
+								pobieranieWartosci(gracz1[ktoraKarta], wybranaPrzezBota);
+								kartyUzyte[ktoraKarta] = ktoraKarta;
+								if (doResetuZostalo != 8)
+									wPrawo();
+								wystawienie = false;
+							}
+							else if(prowadziGracz == 2){
+								wybranaPrzezBota = pobierzWartosciBot(gracz2, a);
+								prowadziGracz = 1;
+							}
+							else if (prowadziGracz == 3) {
+								wybranaPrzezBota = pobierzWartosciBot(gracz3, b);
+								prowadziGracz = 1;
+							}
 						}
 						else {
 							usunKarty();
@@ -507,7 +819,9 @@ void Gra::przebieg() {
 							wygrywaG2 = 0;
 							wygrywaG3 = 0;
 							wystawienie = true;
+							
 							doResetuZostalo++;
+							reset();
 						}
 					}
 					break;
