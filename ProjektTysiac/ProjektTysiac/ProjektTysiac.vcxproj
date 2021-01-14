@@ -85,11 +85,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="karty.cpp" />
+    <ClCompile Include="Licytacja.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="Zasady.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Licytacja.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="naglowek.h" />
     <ClInclude Include="Zasady.h" />

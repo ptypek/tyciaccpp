@@ -1,5 +1,4 @@
 #include "Menu.h"
-#include <iostream>
 
 Menu::Menu(float x, float y) {
 	if (!font.loadFromFile("sansation.ttf")) {
