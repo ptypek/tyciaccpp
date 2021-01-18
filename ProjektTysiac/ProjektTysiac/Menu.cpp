@@ -1,5 +1,8 @@
 #include "Menu.h"
 
+/*
+* Konstruktor Menu
+*/
 Menu::Menu(float x, float y) {
 	if (!font.loadFromFile("sansation.ttf")) {
 		std::cout << "Nie udalo sie pobrac czcionki";
@@ -33,6 +36,9 @@ Menu::Menu(float x, float y) {
 Menu::~Menu() {
 }
 
+/*
+* Metoda wyœwietlaj¹ca elementy menu
+*/
 void Menu::draw(sf::RenderWindow& window) {
 	window.draw(poleMenu);
 	for (int i = 0; i < 3; i++) {
@@ -40,6 +46,11 @@ void Menu::draw(sf::RenderWindow& window) {
 	}
 }
 
+/*
+* Metody, które umo¿liwiaj¹ poruszanie siê w dó³ i w górê podczas ekranu menu,
+* Podobnie jak w poprzednich, gdy znacznik znajduje siê na krañcowej opcji,
+* to zostanie przeniesiony na drugi kraniec.
+*/
 void Menu::wDol() {
 	if (opcja < 2) {
 		opcja++;

@@ -5,7 +5,9 @@
 #include <fstream>
 
 
-
+/*
+* Konstruktor Zasady
+*/
 Zasady::Zasady() {
 	texture.loadFromFile("image/zasady.png");
 
@@ -23,6 +25,11 @@ Zasady::Zasady() {
 
 Zasady::~Zasady() {}
 
+/*
+* Poruszanie siê po oknie Zasady za pomoc¹ scrolla
+* W górê 
+* i w dó³
+*/
 void Zasady::ScrollWGore() {
 	if (view.getCenter().y > 400.0f)
 	view.move(sf::Vector2f(0, -25.0f));
@@ -32,17 +39,27 @@ void Zasady::ScrollWDol() {
 	if(view.getCenter().y < 1200.0f)
 	view.move(sf::Vector2f(0, 25.0f));
 }
+
+/*
+* Resetowanie widoku okna na domyœln¹
+*/
 void Zasady::ScrollReset() {
 	float tmp = -(view.getCenter().y - 400.0f);
 	view.move(sf::Vector2f(0, tmp));
 }
 
+/*
+* Rysowanie t³a i obiektów Zasady
+*/
 void Zasady::draw(sf::RenderWindow& window) {
 	window.setView(view);
 	window.draw(tlo);
 	window.draw(text);
 }
 
+/*
+* Metoda, która wczytuje na ekran zapisany w pliku tekst z zasadmi dotycz¹cymi gry
+*/
 void Zasady::WypiszZasady() {
 	std::string linijki;
 	std::ifstream zasadyPlik;

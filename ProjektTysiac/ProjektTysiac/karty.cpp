@@ -8,25 +8,32 @@
 
 using namespace std;
 
-
+/*
+* Wczytanie wszystkich kart, uzupe³nienie ich w³aœciwoœci
+*/
 void wczytajKarty(Karta tab[24]) {
 	cout << "Wczytuje karty" << endl;
 	string kolor[4] = { "pik", "trefl", "karo", "kier" }, figura[6] = { "9","10","J","Q","K","A" };
 	int wart{};
-
-	//Dodanie do talii kart, wszystkie potrzebne do gry 24 karty (wszystkie 4 kolory + karty od 9 do Asa)
+	/*
+	* Dodanie do talii kart, wszystkie potrzebne do gry 24 karty (wszystkie 4 kolory + karty od 9 do Asa)
+	*/
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 6; j++) {
 			tab[wart].figura = figura[j];		
 			tab[wart].kolor = kolor[i];
 			tab[wart].wartosc = wart;
 			tab[wart].uzyta = false;
+			tab[wart].meldunek == false;
 			wart++;
+			
 		}
 	}
 }
 
-//Do zrobienia problem 1 **
+/*
+* Przypisanie grafiki do poszczególnych kart
+*/
 void przypiszObraz(Karta tab[24], sf::Texture* texture) {
 	sf::Vector2u taliaSize = texture->getSize();
 	taliaSize.x /= 6;
@@ -49,19 +56,26 @@ void przypiszObraz(Karta tab[24], sf::Texture* texture) {
 	}
 } 
 
+/*
+* Przetasowanie kart, by by³y one nieuporz¹dkowane
+*/
 void przetasujKarty(Karta tab[24]) {
 	cout << "Tasuje " <<endl;
 	Karta tmp;
+	/*
+	* System losowania polega na wylosowaniu dwóch losowych indeksów od 0 do 23, które zostan¹ zamienione miejscami
+	* Powtarzamy to 1000 razy, w celu dok³adnego wymieszania kart
+	*/
 	random_device device;
 	mt19937 generator(device());
 	uniform_int_distribution<int> random(0, 23);
 	int zamiana1{}, zamiana2{};
 	for (int i = 0; i < 1000; i++) {
-		zamiana1 = random(generator);            // Tworzenie zmiennych, które bêd¹ przyjmowaæ randomowe wartoœci, które losowo przetasuj¹ nasz¹ taliê
-		zamiana2 = random(generator);			 // za ka¿dym razem w inny sposób. Dla dok³adnego przetasowanie 24 karty s¹ tasowane 1000 razy.
+		zamiana1 = random(generator);
+		zamiana2 = random(generator);
 		tmp.figura = tab[zamiana1].figura;
 		tmp.kolor = tab[zamiana1].kolor;
-		tmp.wartosc = tab[zamiana1].wartosc;			//Do tasowania u¿ywamy pomocniczej zmiennej, która podmienia wartoœci w dwóch losowych kartach
+		tmp.wartosc = tab[zamiana1].wartosc;
 		tmp.card = tab[zamiana1].card;
 		tab[zamiana1].figura = tab[zamiana2].figura;
 		tab[zamiana1].kolor = tab[zamiana2].kolor;
@@ -74,11 +88,15 @@ void przetasujKarty(Karta tab[24]) {
 	}
 }
 
+/*
+* Rozdanie potasowanych kart,
+* Pokolei zaczynaj¹c od gracza1, rozdajemy 21 kart, 3 pozosta³e l¹duj¹ w musiku, który póŸniej bêdzie rozdany
+*/
 void rozdanie(Karta gracz1[8], Karta gracz2[8], Karta gracz3[8], Karta talia[24], Karta musik[3]) {
 	int licznik{}, iloscKartWRece{};
-	for (int i = 0; i < 21; i++) {									//Rozdanie 21 spoœród 24 kart, po 7 dla ka¿dego gracza, 3 pozosta³e (ostanie) karty id¹ na tzw. "musik"
+	for (int i = 0; i < 21; i++) {									
 		if (i % 3 == 0) {
-			gracz1[iloscKartWRece].figura = talia[i].figura;		//Rozdawane karty po kolei s¹ przypisywane graczom;
+			gracz1[iloscKartWRece].figura = talia[i].figura;
 			gracz1[iloscKartWRece].kolor = talia[i].kolor;
 			gracz1[iloscKartWRece].wartosc = talia[i].wartosc;
 			gracz1[iloscKartWRece].card = talia[i].card;
@@ -110,15 +128,3 @@ void rozdanie(Karta gracz1[8], Karta gracz2[8], Karta gracz3[8], Karta talia[24]
 		musik[i].card = talia[i + 21].card;
  	}
 }
-
-
-// ** - zrobione
-
-/*
-Problem 1 - naprawione (wskaznik do obrazka)
-	Po przerzuceniu funkcji do osobnego pliku tekstura nie wczytuje siê, karty s¹ jako osobne byty, ale wszystkie s¹ jednolicie bia³e
-	* Pêtla przechodzi bez problemu
-	* W mainie dzia³a bez problemu
-	
-===================================
-*/

@@ -1,12 +1,19 @@
-﻿  main.cpp
-C:\Users\balsa\ProjektProgramowanieI\tyciaccpp\ProjektTysiac\ProjektTysiac\main.cpp(112,43): warning C4244: "argument": konwersja z "T" do "float", możliwa utrata danych
+﻿  Menu.cpp
+C:\Users\balsa\ProjektProgramowanieI\tyciaccpp\ProjektTysiac\ProjektTysiac\Menu.cpp(10,27): warning C4244: "argument": konwersja z "float" do "unsigned int", możliwa utrata danych
+C:\Users\balsa\ProjektProgramowanieI\tyciaccpp\ProjektTysiac\ProjektTysiac\Menu.cpp(16,27): warning C4244: "argument": konwersja z "float" do "unsigned int", możliwa utrata danych
+C:\Users\balsa\ProjektProgramowanieI\tyciaccpp\ProjektTysiac\ProjektTysiac\Menu.cpp(23,27): warning C4244: "argument": konwersja z "float" do "unsigned int", możliwa utrata danych
+  karty.cpp
+C:\Users\balsa\ProjektProgramowanieI\tyciaccpp\ProjektTysiac\ProjektTysiac\karty.cpp(24,23): warning C4553: „==”: Wynik wyrażenia nie jest używany; czy chodziło Ci o „=”?
+  main.cpp
+C:\Users\balsa\ProjektProgramowanieI\tyciaccpp\ProjektTysiac\ProjektTysiac\main.cpp(120,43): warning C4244: "argument": konwersja z "T" do "float", możliwa utrata danych
           with
           [
               T=unsigned int
           ]
-C:\Users\balsa\ProjektProgramowanieI\tyciaccpp\ProjektTysiac\ProjektTysiac\main.cpp(112,23): warning C4244: "argument": konwersja z "T" do "float", możliwa utrata danych
+C:\Users\balsa\ProjektProgramowanieI\tyciaccpp\ProjektTysiac\ProjektTysiac\main.cpp(120,23): warning C4244: "argument": konwersja z "T" do "float", możliwa utrata danych
           with
           [
               T=unsigned int
           ]
+  Generowanie kodu...
   ProjektTysiac.vcxproj -> C:\Users\balsa\ProjektProgramowanieI\tyciaccpp\ProjektTysiac\x64\Debug\ProjektTysiac.exe
