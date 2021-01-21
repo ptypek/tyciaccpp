@@ -74,4 +74,6 @@ void Zasady::WypiszZasady() {
 		std::cout << "Nie udalo sie otworzyc pliczku";
 	}
 	text.setString(zasadyText);
+	text.setCharacterSize(25);
+	text.setPosition(15.0f, 15.0f);
 }

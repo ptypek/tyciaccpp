@@ -1,3 +1,52 @@
-cuuuusikpotezny zespacja
-bardzo potezny
-jeszcze potezniejszy
+Gre rozpoczynamy od licytacji, gdzie na podstawie sumy punktow z kart, 
+nalezy wywnioskowac ile punkow finalnie mozna zdobyc. 
+Punkty za karty: 9 -> 0, 10 -> 10, J -> 2, Q -> 3, K -> 4, A -> 11.
+
+W przypadku posiadanych meldunkow, ich wystawienie spowoduje 
+dodanie do naszych punktow: pik -> 40, trefl -> 60, karo -> 80, kier -> 100. 
+Meldunki to pary kart Q i K, bedace tego samego koloru. 
+Jezeli posiadamy takie mozemy ich uzyc, 
+tylko wtedy gdy bedziemy prowadzic gre. 
+Uzycie czyli wyrzucenie albo Q albo K, 
+spowoduje aktywowanie meldunku danego koloru, do konca rundy. 
+Zmienic to moze nastepny meldunek, 
+ktory zostanie wyrzucony.
+
+Rozpoczynajacy licytacje, nie moze zrezygnowac z licytacji. 
+Minimalna wartosc licytacji wynosi 100. 
+Gracze nastepni, moga licytowac tylko wiecej niz gracz poprzedni, 
+przy czym nie posiadajac meldunkow maksymalna wielkosc to 120. 
+Licytacja trwa tak dlugo, dopoki dwoje z trzech graczy nie zrezygnuje. 
+Kwota wylicytowana jest iloscia punktow jakie musi osiagnac gracz podczas rundy.
+
+Wygrywajacy gracz ma do rozdania musik, gdzie sposrod trzech kart, 
+wybiera jedna dla siebie, a pozostale rozdaje pozostalym graczom. 
+
+Prowadzacy gre wybiera karte, ktora chce zagrac. 
+Reszta graczy wybiera sposrod swoich kart taka, ktora odpowiada, 
+kolorem karcie wybranej przez prowadzacego. 
+
+Gdy na srodku sa trzy karty nastepuje sprawdzanie, 
+rozpoczynamy od tego czy kolor zgadza się z kolorem prowadzacego, 
+jezeli tak to karty posiadajace ten sam kolor walcza dalej, 
+tym razem jezeli chodzi o figure. Karta o najwyzszej figurze wygrywa. 
+Zdobywa wszystkie karty z aktualnego  srodka, 
+po czym do jego konta przypisywane sa Punty zebranych kart.
+
+Wyjatek to aktywny meldunek, podczas jego trwania, niewazne ktory gracz, 
+moze wyrzucic karte o kolorze w jakim wystepuje meldunek. 
+Wtedy priorytetem nie jest karta, ktora zostala wyrzucona 
+przez gracza prowadzacego, tylko karty w kolorze meldunku. 
+Gdy takich kart jest wiecej wygrywa ta o wiekszej figurze.
+
+Calosc powtarzana jest od skonczenia sie kart na rece wszystkich graczy.
+
+Nastepnie podliczane sa punkty z kart zdobycznych. 
+Gracz prowadzacy musi miec wiecej lub tyle samo punktow ile podal podczas licytacji, 
+zeby punkty zostaly dodane do jego konta. 
+W przeciwnym razie ilosc jaka zostala podana 
+podczas licytacji zostaje odjeta od jego punktow. 
+Reszta graczy sumuje punkty jakie 
+zdobyla z kart zdobycznych i dodaje do swoich punktow.
+
+Gra trwa dopoki jeden z graczy nie osiagnie 1000 punktow.

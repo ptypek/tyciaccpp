@@ -26,6 +26,13 @@ private:
 	sf::Sprite plansza;
 
 
+	sf::Sprite spriteWygrana;
+	sf::Sprite spritePrzegrana;
+	sf::Texture textureWygrana;
+	sf::Texture texturePrzegrana;
+	bool koniec;
+	bool czyWygralem;
+
 	/*
 	* Zmienne napisowe
 	*/
@@ -63,6 +70,9 @@ private:
 	/*
 	* Zmienne licytacji
 	*/
+	sf::CircleShape circle1;
+	sf::CircleShape circle2;
+	sf::CircleShape circle3;
 	Licytacja licytacja;
 	int licytacjaJa, licytacjaBot2, licytacjaBot3;
 	bool czyLicytacja;
@@ -166,6 +176,8 @@ Gra::Gra()
 	a(630.0f),
 	b(710.0f),
 	yLicytacja(250.0f),
+	koniec(false),
+	czyWygralem(false),
 	czyReset(false),
 	czyMusik(true),
 	musikCzyNie(true),
@@ -199,8 +211,14 @@ Gra::Gra()
 	texture.loadFromFile("talia.png");
 	texturePlansza.loadFromFile("plansza.png");
 	uzytyMusik.loadFromFile("uzyta.png");
-	
+
 	plansza.setTexture(texturePlansza);
+
+	textureWygrana.loadFromFile("image/wygrana.png");
+	texturePrzegrana.loadFromFile("image/porazka.png");
+	spriteWygrana.setTexture(textureWygrana);
+	spritePrzegrana.setTexture(texturePrzegrana);
+
 
 	view.setSize(sf::Vector2f(1200.0f, 800.0f));
 	view.setCenter(sf::Vector2f(600.0f, 400.0f));
@@ -241,7 +259,15 @@ Gra::Gra()
 	wybierzKarte.setOrigin(sf::Vector2f(wybierzKarte.getGlobalBounds().width / 2, wybierzKarte.getGlobalBounds().height / 2));
 	wybierzKarte.setPosition(sf::Vector2f(450.0f, 450.0f));
 	
-
+	circle1.setFillColor(sf::Color::Green);
+	circle1.setRadius(15.0f);
+	circle1.setPosition(sf::Vector2f(380.0f, 170.0f));
+	circle2.setFillColor(sf::Color::Green);
+	circle2.setRadius(15.0f);
+	circle2.setPosition(sf::Vector2f(380.0f, 600.0f));
+	circle3.setFillColor(sf::Color::Green);
+	circle3.setRadius(15.0f);
+	circle3.setPosition(sf::Vector2f(950.0f, 170.0f));
 
 	for (int i = 0; i < 8; i++)
 		kartyUzyte[i] = -1;
@@ -278,7 +304,7 @@ Gra::Gra()
 *  Funkja ustawiaj¹ca karty graczy i karty z musiku we w³aœciwych pozycjach
 */
 void Gra::pozycjaKart() {
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < 7; i++) {
 		gracz1[i].card.setPosition(sf::Vector2f(120.0f + (110.0f * i), 80.0f));
 		gracz3[i].card.setPosition(sf::Vector2f(1100.0f, 100.0f + (100.0f * i)));
 		gracz2[i].card.setPosition(sf::Vector2f(120.0f + (110.0f * i), 700.0f));
@@ -591,8 +617,6 @@ void Gra::ustawMusik(Karta doUstawienia[], bool &czyGracz3, sf::Vector2u texture
 	musik[id].card.setTexture(uzytyMusik);
 	czyMeldunek(doUstawienia, jakiMeldunek1);
 }
-
-//*************Mechanika gry****************//
 
 /*
 * Metoda, która przesuwa karty z pola widzenia, tak aby nie myli³y gracza po zakoñczeniu partii
@@ -1626,6 +1650,20 @@ void Gra::podliczPunkty(string pierwszy, string drugi, string trzeci) {
 		pkt1tmp = 0;
 		pkt2tmp = 0;
 		pkt3tmp = 0;
+		circle1.setFillColor(sf::Color::Green);
+		circle2.setFillColor(sf::Color::Green);
+		circle3.setFillColor(sf::Color::Green);
+		if (pkt1 >= 1000) {
+			cout << "KONIEC";
+			koniec = true;
+			czyWygralem = true;
+			przejscieDo = 4;
+		}
+		if (pkt2 >= 1000 || pkt3 >= 1000) {
+			koniec = true;
+			przejscieDo = 4;
+			cout << "KONIEC";
+		}
 	}
 }
 /*
@@ -1657,6 +1695,12 @@ void Gra::sprawdzLicytacje() {
 			licytacjaBot2 = licytacja.licytujBot(gracz2);
 		}
 	}
+	if (licytacjaJa == -1)
+		circle1.setFillColor(sf::Color::Red);
+	if (licytacjaBot2 == -1)
+		circle2.setFillColor(sf::Color::Red);
+	if (licytacjaBot3 == -1)
+		circle3.setFillColor(sf::Color::Red);
 	cout << "Ja: " << licytacjaJa << endl << "Bot2: " << licytacjaBot2 << endl << "Bot3: "<< licytacjaBot3 << endl;
 	/*
 	* Sprawdzenie czy 2 z 3 graczy zrezygnowa³o z licytacji
@@ -1954,6 +1998,18 @@ void Gra::przebieg() {
 					break;
 				}			
 			}
+			if (przejscieDo == 4) {
+				switch (zdarzenie.key.code){
+				case sf::Keyboard::Escape:
+					przejscieDo = 0;
+					break;
+				case sf::Keyboard::Return:
+					przejscieDo = 0;
+					break;
+				default:
+					break;
+				}
+			}
 			/*
 			* Ekran zasad
 			*/
@@ -2027,6 +2083,9 @@ void Gra::okno() {
 		}
 		if (czyLicytacja) {
 			licytacja.draw(window);
+			window.draw(circle1);
+			window.draw(circle2);
+			window.draw(circle3);
 		}
 		window.draw(punkty1);
 		window.draw(punkty2);
@@ -2034,6 +2093,14 @@ void Gra::okno() {
 	}
 	else if (przejscieDo == 2) {
 		zasady.draw(window);
+	}
+	else if (przejscieDo == 4) {
+		if (czyWygralem) {
+			window.draw(spriteWygrana);
+		}
+		else {
+			window.draw(spritePrzegrana);
+		}
 	}
 	window.display();
 }
