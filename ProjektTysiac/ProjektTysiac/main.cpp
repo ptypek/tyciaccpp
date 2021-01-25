@@ -21,6 +21,7 @@ private:
 	sf::Texture texture;
 	sf::Texture texturePlansza;
 	sf::Texture uzytyMusik;
+	sf::Texture tylKarty;
 	sf::View view;
 	
 	sf::Sprite plansza;
@@ -73,6 +74,7 @@ private:
 	sf::CircleShape circle1;
 	sf::CircleShape circle2;
 	sf::CircleShape circle3;
+	sf::Text wygrywaLicytacje;
 	Licytacja licytacja;
 	int licytacjaJa, licytacjaBot2, licytacjaBot3;
 	bool czyLicytacja;
@@ -110,14 +112,15 @@ private:
 	void przebieg();
 	void okno();
 	void pozycjaKart();
+	void tylKart();
+	void tylJednejKarty(Karta&);
+	void przodKart(Karta&);
 	
 	/*
 	* Funkcje poruszania siê po aplikacji
 	*/
 	void wLewo();
 	void wPrawo();
-	void wDol();
-	void wGore();
 	void wystawKarte(Karta&);
 
 	/*
@@ -173,8 +176,8 @@ Gra::Gra()
 	pkt1tmp(0),
 	pkt2tmp(0),
 	pkt3tmp(0),
-	a(630.0f),
-	b(710.0f),
+	a(600.0f),
+	b(720.0f),
 	yLicytacja(250.0f),
 	koniec(false),
 	czyWygralem(false),
@@ -211,6 +214,7 @@ Gra::Gra()
 	texture.loadFromFile("talia.png");
 	texturePlansza.loadFromFile("plansza.png");
 	uzytyMusik.loadFromFile("uzyta.png");
+	tylKarty.loadFromFile("tyl.png");
 
 	plansza.setTexture(texturePlansza);
 
@@ -235,7 +239,7 @@ Gra::Gra()
 	punkty3.setString(to_string(pkt3));
 	punkty1.setPosition(sf::Vector2f(100.0f, 160.0f));
 	punkty2.setPosition(sf::Vector2f(100.0f, 600.0f));
-	punkty3.setPosition(sf::Vector2f(900.0f, 400.0f));
+	punkty3.setPosition(sf::Vector2f(995.0f, 75.0f));
 	wygrana.setString("Wygrana!");
 	wygrana.setFont(czcionka);
 	wygrana.setFillColor(sf::Color::Red);
@@ -254,10 +258,10 @@ Gra::Gra()
 	wczytajKarty(talia);
 	przypiszObraz(talia, &texture);
 
-	wybierzKarte.setSize(sf::Vector2f(60.0f, 60.0f));
+	wybierzKarte.setSize(sf::Vector2f(96.0f, 16.0f));
 	wybierzKarte.setFillColor(sf::Color::Red);
 	wybierzKarte.setOrigin(sf::Vector2f(wybierzKarte.getGlobalBounds().width / 2, wybierzKarte.getGlobalBounds().height / 2));
-	wybierzKarte.setPosition(sf::Vector2f(450.0f, 450.0f));
+	wybierzKarte.setPosition(sf::Vector2f(490.0f, 470.0f));
 	
 	circle1.setFillColor(sf::Color::Green);
 	circle1.setRadius(15.0f);
@@ -268,6 +272,10 @@ Gra::Gra()
 	circle3.setFillColor(sf::Color::Green);
 	circle3.setRadius(15.0f);
 	circle3.setPosition(sf::Vector2f(950.0f, 170.0f));
+	wygrywaLicytacje.setFont(czcionka);
+	wygrywaLicytacje.setCharacterSize(30);
+	wygrywaLicytacje.setFillColor(sf::Color::Green);
+	wygrywaLicytacje.setPosition(sf::Vector2f(450.0f, 270.0f));
 
 	for (int i = 0; i < 8; i++)
 		kartyUzyte[i] = -1;
@@ -305,15 +313,61 @@ Gra::Gra()
 */
 void Gra::pozycjaKart() {
 	for (int i = 0; i < 7; i++) {
-		gracz1[i].card.setPosition(sf::Vector2f(120.0f + (110.0f * i), 80.0f));
-		gracz3[i].card.setPosition(sf::Vector2f(1100.0f, 100.0f + (100.0f * i)));
-		gracz2[i].card.setPosition(sf::Vector2f(120.0f + (110.0f * i), 700.0f));
+		gracz1[i].card.setPosition(sf::Vector2f(72.0f + (97.5f * i), 79.0f));
+		gracz3[i].card.setPosition(sf::Vector2f(1115.0f, 59.0f + (97.0f * i)));
+		gracz3[i].card.setRotation(-90.0f);
+		gracz2[i].card.setPosition(sf::Vector2f(72.0f + (97.5f * i), 721.0f));
 	}
 	for (int i = 0; i < 3; i++) {
-		musik[i].card.setPosition(sf::Vector2f(450.0f + (110.0f * i), 450.0f));
+		musik[i].card.setPosition(sf::Vector2f(490.0f + (114.0f * i), 400.0f));
 	}
 }
 
+/*
+* Funkcja umo¿liwiaj¹ca zakrycie kart graczy niesterowanych przez osobê
+*/
+void Gra::tylKart() {
+	sf::Vector2u tylSize = tylKarty.getSize();
+	tylSize.x /= 6;
+	tylSize.y /= 4;
+	int n = 0;
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 6; j++) {
+			gracz2[n].card.setTexture(tylKarty);
+			gracz2[n].card.setTextureRect(sf::IntRect(tylSize.x * j, tylSize.y * i, tylSize.x, tylSize.y));
+			gracz3[n].card.setTexture(tylKarty);
+			gracz3[n].card.setTextureRect(sf::IntRect(tylSize.x * j, tylSize.y * i, tylSize.x, tylSize.y));
+			if (n == 6)
+				break;
+			else
+				n++;
+		}
+
+	}
+}
+
+void Gra::tylJednejKarty(Karta& doTylu) {
+	sf::Vector2u przodSize = tylKarty.getSize();
+	przodSize.x /= 6;
+	przodSize.y /= 4;
+	int x = doTylu.wartosc % 6;
+	int y = doTylu.wartosc / 6;
+
+	doTylu.card.setTexture(tylKarty);
+	doTylu.card.setTextureRect(sf::IntRect(przodSize.x * x, przodSize.y * y, przodSize.x, przodSize.y));
+}
+
+void Gra::przodKart(Karta &doOdwrocenia) {
+	sf::Vector2u przodSize = texture.getSize();
+	przodSize.x /= 6;
+	przodSize.y /= 4;
+	int x = doOdwrocenia.wartosc % 6;
+	int y = doOdwrocenia.wartosc / 6;
+
+	doOdwrocenia.card.setTexture(texture);
+	doOdwrocenia.card.setTextureRect(sf::IntRect(przodSize.x * x, przodSize.y * y, przodSize.x, przodSize.y));
+	
+}
 
 /*
 * Funkcje, które wybieraj¹ karty lewo-prawo 
@@ -324,7 +378,7 @@ void Gra::wLewo() {
 	* ustawienie znacznika kart, na pierwsz¹ w rêce, gdy partia dobiegnie koñca
 	*/
 	if (doResetuZostalo == 7)
-		wybierzKarte.setPosition(sf::Vector2f(gracz1[0].card.getPosition().x, gracz1[0].card.getPosition().y));
+		wybierzKarte.setPosition(sf::Vector2f(gracz1[0].card.getPosition().x, gracz1[0].card.getPosition().y + 70.0f));
 	/*
 	* Sprawdzenie czy aktualnie nie rozdajemy musiku
 	* W zale¿noœci od tego albo poruszamy siê po kartach musiku rozdaj¹c je graczom,
@@ -347,7 +401,7 @@ void Gra::wLewo() {
 				else
 					ktoraKarta--;
 			} while (ktoraKarta == kartyUzyte[ktoraKarta]);
-			wybierzKarte.setPosition(sf::Vector2f(gracz1[ktoraKarta].card.getPosition().x, gracz1[ktoraKarta].card.getPosition().y));
+			wybierzKarte.setPosition(sf::Vector2f(gracz1[ktoraKarta].card.getPosition().x, gracz1[ktoraKarta].card.getPosition().y + 70.0f));
 		}
 	}
 	/*
@@ -362,7 +416,7 @@ void Gra::wLewo() {
 				else
 					ktoraKartaMusik--;
 			} while (ktoraKartaMusik == kartyUzyteMusik[ktoraKartaMusik]);
-			wybierzKarte.setPosition(sf::Vector2f(musik[ktoraKartaMusik].card.getPosition().x, musik[ktoraKartaMusik].card.getPosition().y));
+			wybierzKarte.setPosition(sf::Vector2f(musik[ktoraKartaMusik].card.getPosition().x, musik[ktoraKartaMusik].card.getPosition().y + 70.0f));
 		}
 	}
 }
@@ -372,7 +426,7 @@ void Gra::wPrawo() {
 	* ustawienie znacznika kart, na pierwsz¹ w rêce, gdy partia dobiegnie koñca
 	*/
 	if (doResetuZostalo == 7)
-		wybierzKarte.setPosition(sf::Vector2f(gracz1[0].card.getPosition().x, gracz1[0].card.getPosition().y));
+		wybierzKarte.setPosition(sf::Vector2f(gracz1[0].card.getPosition().x, gracz1[0].card.getPosition().y + 70.0f));
 	if (!musikCzyNie) {
 		ktoraKartaMusik = 0;
 		/*
@@ -390,7 +444,7 @@ void Gra::wPrawo() {
 				else
 					ktoraKarta++;
 			} while (ktoraKarta == kartyUzyte[ktoraKarta]);
-			wybierzKarte.setPosition(sf::Vector2f(gracz1[ktoraKarta].card.getPosition().x, gracz1[ktoraKarta].card.getPosition().y));
+			wybierzKarte.setPosition(sf::Vector2f(gracz1[ktoraKarta].card.getPosition().x, gracz1[ktoraKarta].card.getPosition().y + 70.0f));
 		}
 	}
 	/*
@@ -405,51 +459,18 @@ void Gra::wPrawo() {
 				else
 					ktoraKartaMusik++;
 			} while (ktoraKartaMusik == kartyUzyteMusik[ktoraKartaMusik]);
-			wybierzKarte.setPosition(sf::Vector2f(musik[ktoraKartaMusik].card.getPosition().x, musik[ktoraKartaMusik].card.getPosition().y));
+			wybierzKarte.setPosition(sf::Vector2f(musik[ktoraKartaMusik].card.getPosition().x, musik[ktoraKartaMusik].card.getPosition().y + 70.0f));
 		}
 	}
 }
-void Gra::wDol() {
-	/*
-	* Wybranie nastêpnej wartoœci licytacji, podczas licytacji.
-	* 
-	* Podobnie jak przy ruchu prawo-lewo, je¿eli znacznik znajduje siê na skrajnie dolnym obiekcie,
-	* to znacznik zostanie przeniesiony na skrajnie górny.
-	*/
-	cout <<"yLicytacja: " << yLicytacja << endl;
-	if (yLicytacja < 450.0f) {
-		yLicytacja += 50.0f;
-		wybierzKarte.setPosition(sf::Vector2f(150.0f, yLicytacja));
-	}
-	else {
-		yLicytacja = 250.0f;
-		wybierzKarte.setPosition(sf::Vector2f(150.0f, yLicytacja));
-	}
-}
-void Gra::wGore() {
-	/*
-	* Wybranie nastêpnej wartoœci licytacji, podczas licytacji.
-	*
-	* Podobnie jak przy ruchu prawo-lewo, je¿eli znacznik znajduje siê na skrajnie grórnym obiekcie,
-	* to znacznik zostanie przeniesiony na skrajnie dolny.
-	*/
-	cout << "yLicytacja: " << yLicytacja << endl;
-	if (yLicytacja > 250.0f) {
-		yLicytacja -= 50.0f;
-		wybierzKarte.setPosition(sf::Vector2f(150.0f, yLicytacja));
-	}
-	else {
-		yLicytacja = 450.0f;
-		wybierzKarte.setPosition(sf::Vector2f(150.0f, yLicytacja));
-	}
-}
+
 /*
 * Metoda ustawia pozycjê karty, któr¹ wybraliœmy na œrodek planszy
 */
 void Gra::wystawKarte(Karta& karta) {
 	cout << "Wystawiam Karte" << endl;
-	karta.card.setPosition(sf::Vector2f(550.0f, 400.0f));
-	wybierzKarte.setPosition(sf::Vector2f(karta.card.getPosition().x, karta.card.getPosition().y));
+	karta.card.setPosition(sf::Vector2f(490.0f, 400.0f));
+	wybierzKarte.setPosition(sf::Vector2f(karta.card.getPosition().x, karta.card.getPosition().y + 70.0f));
 }
 
 /*
@@ -474,7 +495,7 @@ void Gra::wybierzMusik() {
 		gracz1[7].wartosc = musik[ktoraKartaMusik].wartosc;
 		gracz1[7].card.setTexture(texture);
 		gracz1[7].card.setTextureRect(sf::IntRect(textureSize.x * x, textureSize.y * y, textureSize.x, textureSize.y));
-		gracz1[7].card.setPosition(sf::Vector2f(890.0f, 80.0f));
+		gracz1[7].card.setPosition(sf::Vector2f(754.5f, 79.0f));
 		gracz1[7].card.setOrigin(sf::Vector2f(gracz1[7].card.getGlobalBounds().width / 2, gracz1[7].card.getGlobalBounds().height / 2));
 		musik[ktoraKartaMusik].card.setTexture(uzytyMusik);
 		czyMeldunek(gracz1, jakiMeldunek1);
@@ -483,9 +504,9 @@ void Gra::wybierzMusik() {
 		gracz2[7].figura = musik[ktoraKartaMusik].figura;
 		gracz2[7].kolor = musik[ktoraKartaMusik].kolor;
 		gracz2[7].wartosc = musik[ktoraKartaMusik].wartosc;
-		gracz2[7].card.setTexture(texture);
+		gracz2[7].card.setTexture(tylKarty);
 		gracz2[7].card.setTextureRect(sf::IntRect(textureSize.x * x, textureSize.y * y, textureSize.x, textureSize.y));
-		gracz2[7].card.setPosition(sf::Vector2f(890.0f, 700.0f));
+		gracz2[7].card.setPosition(sf::Vector2f(754.5f, 721.0f));
 		gracz2[7].card.setOrigin(sf::Vector2f(gracz2[7].card.getGlobalBounds().width / 2, gracz2[7].card.getGlobalBounds().height / 2));
 		musik[ktoraKartaMusik].card.setTexture(uzytyMusik);
 		czyMeldunek(gracz2, jakiMeldunek2);
@@ -494,13 +515,15 @@ void Gra::wybierzMusik() {
 		gracz3[7].figura = musik[ktoraKartaMusik].figura;
 		gracz3[7].kolor = musik[ktoraKartaMusik].kolor;
 		gracz3[7].wartosc = musik[ktoraKartaMusik].wartosc;
-		gracz3[7].card.setTexture(texture);
+		gracz3[7].card.setTexture(tylKarty);
 		gracz3[7].card.setTextureRect(sf::IntRect(textureSize.x * x, textureSize.y * y, textureSize.x, textureSize.y));
-		gracz3[7].card.setPosition(sf::Vector2f(1100.0f, 750.0f));
 		gracz3[7].card.setOrigin(sf::Vector2f(gracz3[7].card.getGlobalBounds().width / 2, gracz3[7].card.getGlobalBounds().height / 2));
+		gracz3[7].card.setPosition(sf::Vector2f(1115.0f, 738.0f));
+		gracz3[7].card.setRotation(-90.0f);
+		
 		musik[ktoraKartaMusik].card.setTexture(uzytyMusik);
 		przyznanyMusik = 0;
-		wybierzKarte.setPosition(sf::Vector2f(gracz1[0].card.getPosition().x, gracz1[0].card.getPosition().y));
+		wybierzKarte.setPosition(sf::Vector2f(gracz1[0].card.getPosition().x, gracz1[0].card.getPosition().y + 70.0f));
 		musikCzyNie = false;
 		czyMusik = false;
 		czyMeldunek(gracz3, jakiMeldunek3);
@@ -516,6 +539,7 @@ void Gra::wybierzMusik() {
 void Gra::wybierzMusikBot(Karta wygrywajacy[], Karta gracz[], Karta botPrzegrywajacy[]) {
 	cout << "Bot wybiera musik" << endl;
 	sf::Vector2u textureSize = texture.getSize();
+	sf::Vector2u tylKart = tylKarty.getSize();
 	textureSize.x /= 6;
 	textureSize.y /= 4;
 	int x, y;
@@ -591,9 +615,11 @@ void Gra::wybierzMusikBot(Karta wygrywajacy[], Karta gracz[], Karta botPrzegrywa
 	* Wyzerowanie wartoœci odpowiadaj¹cych za fazê musiku
 	* Dziêki temu gra mo¿e siê rozpocz¹æ
 	*/
+	tylJednejKarty(gracz2[7]);
+	tylJednejKarty(gracz3[7]);
 	czyMusik = false;
 	musikCzyNie = false;
-	wybierzKarte.setPosition(sf::Vector2f(gracz1[0].card.getPosition().x, gracz1[0].card.getPosition().y));
+	wybierzKarte.setPosition(sf::Vector2f(gracz1[0].card.getPosition().x, gracz1[0].card.getPosition().y + 70.0f));
 }
 /*
 * Medota przypisuj¹ca przes³an¹ karte z musiku, do przes³anej talii gracza
@@ -608,9 +634,10 @@ void Gra::ustawMusik(Karta doUstawienia[], bool &czyGracz3, sf::Vector2u texture
 	* W zale¿noœci od gracza uk³adane s¹ karty (gracz 3, ma karty u³o¿one pionowo)
 	*/
 	if (doUstawienia[6].card.getPosition().x - doUstawienia[5].card.getPosition().x != 0)
-		doUstawienia[7].card.setPosition(sf::Vector2f(doUstawienia[6].card.getPosition().x + 110.0f, doUstawienia[6].card.getPosition().y));
+		doUstawienia[7].card.setPosition(sf::Vector2f(doUstawienia[6].card.getPosition().x + 97.5f, doUstawienia[6].card.getPosition().y));
 	else {
-		doUstawienia[7].card.setPosition(sf::Vector2f(doUstawienia[6].card.getPosition().x, doUstawienia[6].card.getPosition().y + 100.0f));
+		doUstawienia[7].card.setPosition(sf::Vector2f(1095.5f, doUstawienia[6].card.getPosition().y + 79.0f));
+		doUstawienia[7].card.setRotation(-90.0f);
 		czyGracz3 = true;
 	}
 	doUstawienia[7].card.setOrigin(sf::Vector2f(doUstawienia[7].card.getGlobalBounds().width / 2, doUstawienia[7].card.getGlobalBounds().height / 2));
@@ -775,7 +802,11 @@ Karta Gra::pobierzWartosciBot(Karta kartaBota[], float x) {
 	* Przesuniêcie na œrodek planszy
 	*/
 	kartaBota[indexKartyBota].uzyta = true;
+	if (x == 720.0f) {
+		kartaBota[indexKartyBota].card.setRotation(00.0f);
+	}
 	kartaBota[indexKartyBota].card.setPosition(sf::Vector2f(x, 400.0f));
+	przodKart(kartaBota[indexKartyBota]);
 	/*
 	* Pobranie adresu karty, by po partyii mog³a zostaæ przesuniêta poza ekran
 	*/
@@ -819,6 +850,10 @@ Karta Gra::pobierzWartosciBot(Karta& kartaGracza, Karta kartaBota[], float x){
 	* Przesuniêcie karty na œrodek planszy
 	*/
 	kartaBota[indexKartyBota].uzyta = true;
+	if (x == 720.0f) {
+		kartaBota[indexKartyBota].card.setRotation(0.0f);
+	}
+	przodKart(kartaBota[indexKartyBota]);
 	kartaBota[indexKartyBota].card.setPosition(sf::Vector2f(x, 400.0f));
 	/*
 	* Pobranie adresu karty
@@ -1653,14 +1688,16 @@ void Gra::podliczPunkty(string pierwszy, string drugi, string trzeci) {
 		circle1.setFillColor(sf::Color::Green);
 		circle2.setFillColor(sf::Color::Green);
 		circle3.setFillColor(sf::Color::Green);
-		if (pkt1 >= 1000) {
+		if (pkt1 >= 200) {
 			cout << "KONIEC";
 			koniec = true;
 			czyWygralem = true;
+			czyReset = true;
 			przejscieDo = 4;
 		}
-		if (pkt2 >= 1000 || pkt3 >= 1000) {
+		if (pkt2 >= 200 || pkt3 >= 200) {
 			koniec = true;
+			czyReset = true;
 			przejscieDo = 4;
 			cout << "KONIEC";
 		}
@@ -1675,21 +1712,26 @@ void Gra::sprawdzLicytacje() {
 	* w odpowieni sposób, do sytuacji pobierane s¹ wysokoœci licytowanych punktów od poszczególnych graczy
 	*/
 	if (czyJaProwadze.first == true && czyJaProwadze.second == true) {
+		cout << "tru tru" << endl;
 		licytacjaJa = licytacja.getLicytujeZa();
 		if (licytacjaBot2 != -1) {
+			cout << "Licytuje bot2!" << endl;
 			licytacjaBot2 = licytacja.licytujBot(gracz2);
 		}
 		if (licytacjaBot3 != -1) {
+			cout << "Licytuje bot3!" << endl;
 			licytacjaBot3 = licytacja.licytujBot(gracz3);
 		}
 	}
 	else if (czyJaProwadze.first == false && czyJaProwadze.second == true) {
+		cout << "f tru" << endl;
 		licytacjaJa = licytacja.getLicytujeZa();
 		if (licytacjaBot3 != -1) {
 			licytacjaBot3 = licytacja.licytujBot(gracz3);
 		}
 	}
 	else if (czyJaProwadze.first == true && czyJaProwadze.second == false) {
+		cout << "tru f" << endl;
 		licytacjaJa = licytacja.getLicytujeZa();
 		if (licytacjaBot2 != -1) {
 			licytacjaBot2 = licytacja.licytujBot(gracz2);
@@ -1743,6 +1785,21 @@ void Gra::sprawdzLicytacje() {
 		cout << "Kolejna tura" << endl;
 	}
 
+	if (licytacjaJa > licytacjaBot2 && licytacjaJa > licytacjaBot3) {
+		wygrywaLicytacje.setString("Wygrywa G1 : " + to_string(licytacjaJa));
+		czyJaProwadze.first = true;
+		czyJaProwadze.second = true;
+	}
+	else if (licytacjaBot2 > licytacjaJa && licytacjaBot2 > licytacjaBot3) {
+		wygrywaLicytacje.setString("Wygrywa G2 : " + to_string(licytacjaBot2));
+		czyJaProwadze.first = false;
+		czyJaProwadze.second = true;
+	}
+	else if (licytacjaBot3 > licytacjaJa && licytacjaBot3 > licytacjaBot2) {
+		wygrywaLicytacje.setString("Wygrywa G3 : " + to_string(licytacjaBot3));
+		czyJaProwadze.first = true;
+		czyJaProwadze.second = false;
+	}
 }
 
 /*
@@ -1757,7 +1814,6 @@ void Gra::reset() {
 		licytacjaJa = 0;
 		licytacjaBot2 = 0;
 		licytacjaBot3 = 0;
-		czyReset = false;
 		czyMusik = true;
 		czyLicytacja = true;
 		musikCzyNie = true;
@@ -1770,13 +1826,15 @@ void Gra::reset() {
 		gracz1[7].card.setPosition(sf::Vector2f(-100.0f, -100.0f));
 		gracz2[7].card.setPosition(sf::Vector2f(-100.0f, -100.0f));
 		gracz3[7].card.setPosition(sf::Vector2f(-100.0f, -100.0f));
-		wybierzKarte.setPosition(sf::Vector2f(450.0f, 450.0f));
+		wybierzKarte.setPosition(sf::Vector2f(490.0f, 470.0f));
 		doResetuZostalo = 0;
 		prowadziGracz = 1;
 		if (czyReset == true) {
+			cout << "RESET JEST KURNA TRU" << endl;
 			pkt1 = 0;
 			pkt2 = 0;
 			pkt3 = 0;
+			punkty = 0;
 			pkt1tmp = 0;
 			pkt2tmp = 0;
 			pkt3tmp = 0;
@@ -1805,6 +1863,9 @@ void Gra::reset() {
 		przetasujKarty(talia);
 		rozdanie(gracz1, gracz2, gracz3, talia, musik);
 		pozycjaKart();
+		tylKart();
+		wygrywaLicytacje.setString("");
+		czyReset = false;
 	}
 }
 
@@ -1841,6 +1902,7 @@ void Gra::przebieg() {
 						przetasujKarty(talia);
 						rozdanie(gracz1, gracz2, gracz3, talia, musik);
 						pozycjaKart();
+						tylKart();
 						break;
 					/*
 					* Przejscie do zasad gry
@@ -2002,9 +2064,11 @@ void Gra::przebieg() {
 				switch (zdarzenie.key.code){
 				case sf::Keyboard::Escape:
 					przejscieDo = 0;
+					reset();
 					break;
 				case sf::Keyboard::Return:
 					przejscieDo = 0;
+					reset();
 					break;
 				default:
 					break;
@@ -2086,6 +2150,7 @@ void Gra::okno() {
 			window.draw(circle1);
 			window.draw(circle2);
 			window.draw(circle3);
+			window.draw(wygrywaLicytacje);
 		}
 		window.draw(punkty1);
 		window.draw(punkty2);

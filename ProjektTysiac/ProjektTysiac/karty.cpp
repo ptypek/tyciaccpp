@@ -94,6 +94,7 @@ void przetasujKarty(Karta tab[24]) {
 */
 void rozdanie(Karta gracz1[8], Karta gracz2[8], Karta gracz3[8], Karta talia[24], Karta musik[3]) {
 	int licznik{}, iloscKartWRece{};
+
 	for (int i = 0; i < 21; i++) {									
 		if (i % 3 == 0) {
 			gracz1[iloscKartWRece].figura = talia[i].figura;

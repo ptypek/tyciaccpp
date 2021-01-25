@@ -50,8 +50,10 @@ void Licytacja::draw(sf::RenderWindow& window) {
 	}
 }
 /*
-* Metoda poruszania siê w dó³ tabeli wartoœci licytacji,
-* gdy znacznik znajduje siê na ostanim miejscu, to znacznik jest przesuwany na sam¹ górê tabeli
+* Wybranie nastêpnej wartoœci licytacji, podczas licytacji.
+*
+* Podobnie jak przy ruchu prawo-lewo, je¿eli znacznik znajduje siê na skrajnie dolnym obiekcie,
+* to znacznik zostanie przeniesiony na skrajnie górny.
 */
 void Licytacja::wDol() {
 	if (opcja < 4) {
@@ -65,8 +67,10 @@ void Licytacja::wDol() {
 };
 
 /*
-* Metoda poruszania siê w dó³ tabeli wartoœci licytacji,
-* gdy znacznik znajduje siê na pierwszym miejscu, to znacznik jest przesuwany na sam dó³ tabeli
+* Wybranie nastêpnej wartoœci licytacji, podczas licytacji.
+*
+* Podobnie jak przy ruchu prawo-lewo, je¿eli znacznik znajduje siê na skrajnie grórnym obiekcie,
+* to znacznik zostanie przeniesiony na skrajnie dolny.
 */
 void Licytacja::wGore() {
 	if (opcja > 0) {
@@ -216,7 +220,7 @@ void Licytacja::reset() {
 		licytacjaUzyte[i] = -1;
 		licytacja[i].setFillColor(sf::Color::Yellow);
 		licytujeZa = 0;
-		minLicytacja = 0;
+		minLicytacja = 100;
 		ktoraKolej = 0;
 		czyStart = true;
 	}
